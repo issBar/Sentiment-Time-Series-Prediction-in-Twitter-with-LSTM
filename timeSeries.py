@@ -12,7 +12,7 @@ import utility as uti
 
 
 def create_pred_file(date_time_dic,inquery):
-    with open("./csvData/predict_"+inquery+"_hashtag_tweets.csv", 'w',encoding="utf-8") as csvfile:
+    with open("./csvData/"+inquery+"/predict_"+inquery+"_hashtag_tweets.csv", 'w',encoding="utf-8") as csvfile:
         fieldnames=['Date and time','count_pos','count_neg','average']
         writer=csv.DictWriter(csvfile,fieldnames=fieldnames)
         writer.writeheader()
@@ -24,8 +24,6 @@ def create_pred_file(date_time_dic,inquery):
           
         print ('\nSaved prediction for tweets to: predict_'+inquery+'_hashtag_tweets.csv\n')
         
-    return "./csvData/predict_"+inquery+"_hashtag_tweets.csv"
-
 
 
 def min_date_to_min_dt(min_date,min_hour):
@@ -33,8 +31,6 @@ def min_date_to_min_dt(min_date,min_hour):
     sp=min_date.split('/')
     date_and_time=datetime.datetime(int(sp[2]),int(sp[1]),int(sp[0]),int(min_hour),0,0)
     return date_and_time
-
-
 
 
 def run_time_series(inquery,flag):
@@ -116,18 +112,10 @@ def run_time_series(inquery,flag):
         if date[row]==max_date:
             date_time_dic[max_date]=avglist
         
-              
-            
-    # print(date_time_dic)        
-    #FROM HERE - PREDICTION ON A TIME SERIES #
-
+ 
     #save to  csv file 
-    
-    pred_file=create_pred_file(date_time_dic,inquery)
+    create_pred_file(date_time_dic,inquery)
   
 
-run_time_series("obama",True)
 
-
-
-
+#run_time_series("messi",True)
