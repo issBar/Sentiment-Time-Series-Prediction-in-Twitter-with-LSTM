@@ -100,25 +100,24 @@ def createCsv(inquery,tweets):
          print("Success to edit "+file_path)
 
      save_to_file.close()
+     
+     
 
                          
 def runTweetCon(inquery,runtime):
     file_path=uti.create_new_folder_by_hashtag(inquery)
-    if runtime==0:
-        all_tweets=[]                       
-        api=TwitterClient()
-        tweets = api.getTweets(query = '#'+inquery+' -filter:retweets',count =200)
-        all_tweets=tweets
-        createCsv(inquery,all_tweets)
-    else:
-        for i in range(runtime):
-            all_tweets=[]                       
-            api=TwitterClient()
-            tweets = api.getTweets(query = '#'+inquery+' -filter:retweets',count =200)
-            all_tweets=tweets
-            print("This is run num : ",i)
-            createCsv(inquery,all_tweets)
-            time.sleep(60*60)
+    
+       
+        
+    all_tweets=[]                       
+    api=TwitterClient()
+    tweets = api.getTweets(query = '#'+inquery+' -filter:retweets',count =100)
+    all_tweets=tweets
+    
+    createCsv(inquery,all_tweets)
+    
+    return len(all_tweets)
+          
                      
 
  

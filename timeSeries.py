@@ -11,6 +11,25 @@ import datetime
 import utility as uti
 
 
+    
+def handling_missing_values(inquery):
+    
+    file_to_read="./csvData/"+inquery+"/predict_"+inquery+"_hashtag_tweets.csv"
+    df=pd.read_csv(file_to_read)
+    size_of_file=df.shape[0]
+    df['Date and time']=pd.to_datetime(df['Date and time']) #convert to date time
+    
+
+    df.index=pd.to_datetime(df.index) #convert to date and time
+    df=df.set_index('Date and time').resample('H').mean().fillna((df['average'].fillna(method='ffill')+df['average'].fillna(method='bfill'))/2)
+    df['average']=df['average'].where(df['average'].notnull(), other=(df['average'].fillna(method='ffill')+df['average'].fillna(method='bfill'))/2)
+    array_of_data=df.iloc[:]
+    print(array_of_data)
+    pd.DataFrame(array_of_data).to_csv(file_to_read)
+
+    
+    
+    
 def create_pred_file(date_time_dic,inquery):
     with open("./csvData/"+inquery+"/predict_"+inquery+"_hashtag_tweets.csv", 'w',encoding="utf-8") as csvfile:
         fieldnames=['Date and time','count_pos','count_neg','average']
@@ -115,7 +134,9 @@ def run_time_series(inquery,flag):
  
     #save to  csv file 
     create_pred_file(date_time_dic,inquery)
+    
+    handling_missing_values(inquery)
   
 
 
-#run_time_series("messi",True)
+run_time_series("Trump",True)

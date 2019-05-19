@@ -18,7 +18,7 @@ import tkinter as tk
 from tkinter import *
 from tkinter.ttk import Progressbar
 from tkinter.font import Font
-from PIL import Image, ImageOps
+from PIL import Image, ImageTk
 import time
 import re
 import matplotlib.pyplot as plt
@@ -31,77 +31,19 @@ TweetCon=reload(TweetCon)
 preprocess=reload(preprocess)
 timeSeries=reload(timeSeries)
 
-frame_size="650x350"
+frame_size="700x400"
 backround_color='#32afea'
 text_color='#575661'
 button_backroud_color='#8db3c3'
 
+
 x_size=500
 y_size=500
-
-
-
-def check_input(master,textbox_h,duration):
-    if re.match("^[A-Za-z0-9_-]*$", textbox_h.get()):
-        master.switch_frame(StatusPage,textbox_h,duration)
-    else:
-        messagebox.showinfo("Information","can only accept a-z ,A-Z,0-9")        
-    
-def start_submit_thread(TEXT,duration,progressBar,flag,master):
- 
-    global submit_thread
-    global lock
-    lock=threading.Lock()
-    submit_thread = threading.Thread(target=lambda : run(TEXT,duration,progressBar,flag,master))
-    submit_thread.daemon = True
-    submit_thread.start()
-
-
-
-def run(text,duration,progressBar,flag,master):
-    duration=int(duration)
-    try:
-        lock.acquire()
-        
-        if(flag==True):
-            TweetCon.runTweetCon(text,0)
-            progressBar['value']=60
-            
-            preprocess.runPreprocess(2,text)
-            progressBar['value']+=10
-            
-            NLP.run_natural_language_processing(text,True)
-            progressBar['value']+=15
-            
-            timeSeries.run_time_series(text,True)
-            progressBar['value']+=5
-            
-            dt_dic,time_,pred=LSTM_ver2.run_LSTM("Trump")
-            progressBar['value']+=10
-            
-            master.switch_frame_plt(PlotPage,text,duration,master,dt_dic,time_,pred)
-            #result_page(text,date_time_dic)
-        else:   
-            date_time_dic=timeSeries.run_time_series('',False)
-            #result_page('',date_time_dic)
-            
-        lock.release()
-              
-    except KeyboardInterrupt as err:
-        print(err)
-        
 
 def get_duration(*args):
     return time_options[variable.get()]
 
 
-def qeustionButton(root,sides):
-    file='./qes-icon.png'
-    photo=PhotoImage(file=file)
-    qbutton=Button(root)
-    qbutton.config(image=photo,width="20",height="20")
-    qbutton.pack(fill=tk.X,padx=5,pady=10,side=sides)
-    
 
 class app(tk.Tk):
     def __init__(self):
@@ -109,8 +51,17 @@ class app(tk.Tk):
         self.geometry(frame_size)
         self.configure(bg=backround_color)
         self._frame = None
-        self.switch_frame(StartPage,None,None)
-
+        self.start_frame(StartPage)
+        self.resizable(False,False)
+        
+    def start_frame(self,frame_class):
+         """Destroys current frame and replaces it with a new one."""
+         new_frame = frame_class(self)
+         if self._frame is not None:
+             self._frame.destroy()
+         self._frame = new_frame
+         self._frame.pack()
+        
     def switch_frame(self, frame_class,text,duration):
         """Destroys current frame and replaces it with a new one."""
         new_frame = frame_class(self,text,duration)
@@ -130,22 +81,25 @@ class app(tk.Tk):
 
 class StartPage(tk.Frame):
     
-    def __init__(self, master,text,duration):
+    def __init__(self, master):
         tk.Frame.__init__(self, master)
         self.configure(bg=backround_color)
-        small_font =Font(family="Courier",size=6,weight="bold")
-        large_font= Font(family="Courier",size=24,weight="bold")
-        meduim_font=Font(family="Courier",size=12,weight="bold")
+        #fonts
+        #small_font =Font(family="Courier",size=6,weight="bold")
+        self.large_font= Font(family="Courier",size=24,weight="bold")
+        self.meduim_font=Font(family="Courier",size=12,weight="bold")
         
     
         #top frame
         topframe=Frame(self,bg=backround_color)
         topframe.pack()
+        login_button=Button(topframe,text="Login",command=lambda : master.start_frame(twitter_login),bg=button_backroud_color)
+        login_button.pack(side=RIGHT)
         #top_label
         top_label=Label(topframe,text="Welcome",fg="white",bg=backround_color,font=large_font)       
         top_label.pack(fill=tk.X,pady=10,side=TOP)
         #label
-        label_h=Label(topframe,text="Insert requested Hashtag for Prediction : #",fg=text_color,font=meduim_font,bg=backround_color)
+        label_h=Label(topframe,text="Insert requested Hashtag for Prediction : #",fg=text_color,font=self.meduim_font,bg=backround_color)
         label_h.pack(pady=10,side=LEFT)
         #TextBox
         textbox_h=Entry(topframe)
@@ -156,7 +110,7 @@ class StartPage(tk.Frame):
         midframe.pack()
         
         #label
-        label_ts=Label(midframe,text="Set Duration of a Time-Series : ",fg=text_color,font=meduim_font,bg=backround_color)
+        label_ts=Label(midframe,text="Set Duration of a Time-Series : ",fg=text_color,font=self.meduim_font,bg=backround_color)
         label_ts.pack(pady=10,side=LEFT)
         #option bar
         time_options={"1 Day":1,"2 Days":2,"3 Days":3,"4 Days":4,"5 Days":5,"6 Days":6,"7 Days":7}
@@ -172,102 +126,220 @@ class StartPage(tk.Frame):
         lowframe.pack()
     
         duration=(variable.get()).split('Day')[0]
-        print(duration)
-        #searchButton
-        new_search_button=Button(lowframe,fg=text_color,text="Run",font=meduim_font,command=lambda: check_input(master,textbox_h,duration),bg=button_backroud_color)
-        new_search_button.configure(width = 10, activebackground = "#33B5E5", relief = FLAT)
-        new_search_button.pack(fill=tk.X,padx=5,side=TOP)
+        
+        #run button
+        run_button=Button(lowframe,fg=text_color,text="Run",font=self.meduim_font,command=lambda: self.check_input(master,textbox_h,duration),bg=button_backroud_color)
+        run_button.configure(width = 10, activebackground = "#33B5E5", relief = FLAT)
+        run_button.pack(fill=tk.X,padx=5,side=TOP)
    
        #mid_label
-        label_uploadfile=Label(lowframe,text="OR",fg="white",bg=backround_color,font=meduim_font)       
+        label_uploadfile=Label(lowframe,text="OR",fg="white",bg=backround_color,font=self.meduim_font)       
         label_uploadfile.pack(pady=10,side=TOP)
     
        #uploadFile
-        up_search_button=Button(lowframe,fg=text_color,text="Choose file",font=meduim_font,bg=button_backroud_color)
+        up_search_button=Button(lowframe,fg=text_color,text="Choose file",font=self.meduim_font,bg=button_backroud_color)
         up_search_button.configure(width = 10, activebackground = "#33B5E5", relief = FLAT)
         up_search_button.pack(fill=tk.X,pady=10,side=TOP)
         
+        
+    def check_input(self,master,textbox_h,duration):
+        if re.match("^[A-Za-z0-9_-]*$", textbox_h.get()):
+            master.switch_frame(StatusPage,textbox_h,duration)
+        else:
+            messagebox.showinfo("Information","can only accept a-z ,A-Z,0-9")        
+    
 
 
 class StatusPage(tk.Frame):
+    
     def __init__(self,master,textbox_h,duration):
         tk.Frame.__init__(self,master)
         self.configure(bg=backround_color)
-        small_font = font.Font(family="Montserrat",size="8",weight="bold")
-        large_font= font.Font(family="Montserrat",size="24",weight="bold")
-        meduim_font=Font(family="Montserrat",size=16,weight="bold")
-        font.families()
-        print('text:',textbox_h.get())
-        print("DURATION : ",duration)
-        topFrame=Frame(self,bg=backround_color)
-        topFrame.pack(fill="both", expand=True, padx=100, pady=80)
         
-        back_button=Button(topFrame,fg=text_color,text="Back",command=lambda:master.switch_frame(StartPage,None,None),font=meduim_font,bg=button_backroud_color)
-        back_button.configure(width = 10, activebackground = "#33B5E5", relief = FLAT)
-        back_button.pack(pady=10,side=BOTTOM)
-        
-        label_status=Label(topFrame,text="Status",bg=backround_color,font=meduim_font)
-        label_status.pack(pady=10,side=TOP)
-    
-        progressBar = Progressbar(topFrame,orient="horizontal",style="red.Horizontal.TProgressbar",length=350,  mode="determinate")
-        progressBar.pack(side=LEFT)
-        input_=textbox_h.get()
-        start_submit_thread(input_,duration,progressBar,True,master)
+        #small_font =Font(family="Courier",size=6,weight="bold")
+        #large_font =Font(family="Courier",size=24,weight="bold")
+        self.meduim_font=Font(family="Courier",size=12,weight="bold")
         
         
-     
+        #top frame
+        self.topFrame=Frame(self,bg=backround_color)
+        self.topFrame.pack(fill="both", expand=True, padx=100, pady=80)
+        
+        #back button
+        self.back_button=Button(self.topFrame,fg=text_color,text="Back",command=lambda:master.switch_frame(StartPage,None,None),font=self.meduim_font,bg=button_backroud_color)
+        self.back_button.configure(width = 10, activebackground = "#33B5E5", relief = FLAT)
+                              
+        self.back_button.pack(pady=10,side=BOTTOM)
+        #label status
+        self.label_status=Label(self.topFrame,text="Status",bg=backround_color,font=self.meduim_font)
+        self.label_status.pack(pady=10,side=TOP)
+        
+        #prograss bar
+        self.progressBar = Progressbar(self.topFrame,orient="horizontal",style="red.Horizontal.TProgressbar",length=350,  mode="determinate")
+        self.progressBar.pack(side=LEFT)
+        self.input_=textbox_h.get()
+        
+        #time label
+        self.time_lable=Label(self.topFrame,text="time:"+,bg=backround_color,font=self.meduim_font)
+        self.time_lable.pack(side=RIGHT)
+        
+        
+        #start theread 
+        self.start_submit_thread(self.input_,duration,progressBar,True,master)
+        
+    def start_submit_thread(self,TEXT,duration,progressBar,flag,master):
+        global submit_thread
+        global lock
+        lock=threading.Lock()
+        submit_thread = threading.Thread(target=lambda : self.run(TEXT,duration,progressBar,flag,master))
+        submit_thread.daemon = True
+        submit_thread.start()
+        
+   
+        
+    def run(self,text,duration,progressBar,flag,master):
+        duration=int(duration)
+        try:
+            lock.acquire()
+            tweets_len=0
+            if(flag==True):
+                #connection to twitter and geting tweets
+                hours=duration*24
+                
+                #progressbar
+                p_size=(hours*10)+100
+                progressBar['maximum']=p_size
+                self.time_lable.text='estimated time:'+
+                #for testing
+                tweets_len+=TweetCon.runTweetCon(text,0)
+                print("fatching size=",tweets_len)
+                progressBar['value']=p_size-100
+                
+                '''
+                #loop for taking tweet by hours
+                for d in hours:
+                    TweetCon.runTweetCon(text,0)
+                    progressBar['value']+=10
+                    time.sleep(3600)
+                '''
+                #run preprocess
+                preprocess.runPreprocess(2,text)
+                progressBar['value']+=25
+                
+                NLP.run_natural_language_processing(text,True)
+                progressBar['value']+=25
+                
+                timeSeries.run_time_series(text,True)
+                progressBar['value']+=25
+                
+                dt_dic,time_,pred=LSTM_ver2.run_LSTM("Trump")
+                progressBar['value']+=25
+                
+                master.switch_frame_plt(PlotPage,text,duration,master,dt_dic,time_,pred)
+                #result_page(text,date_time_dic)
+            #else:   
+                #date_time_dic=timeSeries.run_time_series('',False)
+                #result_page('',date_time_dic)
+                
+            lock.release()
+                  
+        except KeyboardInterrupt as err:
+            print(err)
+            
             
 
 class PlotPage(tk.Frame):
    
     def __init__(self,text,duration,master,dt_dic,time_,pred):
         tk.Frame.__init__(self, master)
+        self.text=text
+        #top frame
+        self.meduim_font=Font(family="Courier",size=12,weight="bold")
         self.topFrame=Frame(self,bg=backround_color)
         self.topFrame.pack()
         
-        self.mideelFrame=Frame(self,bg=backround_color)
-        self.mideelFrame.pack()
+        
+        self.back_button=Button(self.topFrame,fg=text_color,text="Back",command=lambda:master.switch_frame(StartPage,text,None),font=self.meduim_font,bg=button_backroud_color)
+        self.back_button.configure(width = 10, activebackground = "#33B5E5", relief = FLAT)
+        self.back_button.pack(side=LEFT)
+              
+        #middle frame
+        self.middleFrame=Frame(self,bg=backround_color)
+        self.middleFrame.pack()
+
         
         self.run_canvas(dt_dic,time_,pred,text, self.topFrame)
         
     def run_canvas(self,dt_dic,time_,pred,text,topFrame):
-         f=plt.figure()
-         x_axis=[]
-         y_axis=[]
+        
+         #array of buttons
          buttons=[]
+         
+         #array of label
+         plots_labels = Label(self.topFrame)
+         plots_labels.images=[]
+         count_plots=[]
          #Plotting graphs by Date and Hours 
+         for i in range(len(dt_dic)):
+             count_plots.append(i)
+         
+         print("count_plots= ",count_plots)
+         count=0
          for key,value in dt_dic.items():
-             for x in value:
-                 x_axis.append(x[0])
-                 y_axis.append(x[1])     
+             self.text='Trump'
+             self.image_path='./csvData/'+self.text+'/plots/'+self.text+'_plot_'+key+'.png'
+             plots_labels.images.append(PhotoImage(file=self.image_path))
+             buttons.append(Button( self.middleFrame,fg=text_color,text=key,command= lambda  x=count_plots[count] :self.open_canvas(plots_labels,x)).pack(side=LEFT))
+             count+=1
+         image_path_pred='./csvData/'+self.text+'/plots/'+self.text+'_plot_prediction.png'
+         plots_labels.images.append(PhotoImage(file=image_path_pred))
+         buttons.append(Button(self.middleFrame,fg=text_color,text=key,command= lambda  x=count :self.open_canvas(plots_labels,x)).pack(side=LEFT))
+
          
-             f.suptitle('Next Hour Prediction',fontsize=12)
-             plt.figure(figsize=(10 , 6))
-             plt.ylim([-1,1])
-             plt.title("#"+text+" prediction graph for date : "+key)
-             plt.plot(x_axis,y_axis,label=key,marker='o',markersize=8)
-             plt.gcf().autofmt_xdate(bottom=0.3, rotation=50, ha='right', which=None)
-             plt.xlabel('Time-Series',fontsize=16)
-             plt.ylabel('Predict',fontsize=16)
-             x_axis=[]
-             y_axis=[]
-             buttons.append(tk.Button(topFrame,fg=text_color,text=key,command= lambda: self.open_canvas(plt)).pack(side=LEFT))
-         split_date=time_.split(' ')
-         plt.plot(split_date[1],pred,marker='s')
-         buttons.append(tk.Button(topFrame,fg=text_color,text=key,command= lambda: self.open_canvas(plt)).pack(side=LEFT))
-         
-    def open_canvas(self,plt):
-        #Plotting predicted value
-         
+            
+
+             
+    def open_canvas(self,plots_labels,count):
+        self.text='Trump'
         
-         canvas = FigureCanvasTkAgg(plt.figure(), self.mideelFrame)
-         canvas.show()
-         canvas.get_tk_widget().pack(side=BOTTOM, fill=BOTH, expand=True)
-         toolbar = NavigationToolbar2TkAgg(canvas,  self.mideelFrame)
-         toolbar.update()
-         canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)    
+        plots_labels.images
+        
+        plots_labels.config(image=plots_labels.images[count])
+        plots_labels.pack()
+          
+        
     
+class twitter_login(tk.Frame):
+   
+    def __init__(self,master):
+        tk.Frame.__init__(self,master)
+       # self.configure(bg=backround_color)
+        print("-----twitter login-----")
+        #small_font = font.Font(family="Montserrat",size="8",weight="bold")
+        #large_font= font.Font(family="Montserrat",size="24",weight="bold")
+        #meduim_font=Font(family="Montserrat",size=16,weight="bold")
+        #font.families()
+        twitt_login=Frame(self,bg=backround_color)
         
+
+        fields=   'Consumer Key','Consumer Secret','Access Token','Access Token Secret'
+        inputs = []
+        for field in fields:
+            row = Frame(twitt_login)
+            labels = Label(row, width=15, text=field, anchor='w')
+            entries = Entry(row, width=45)
+            row.pack(side=TOP, fill=X, padx=5, pady=15)
+            labels.pack(side=LEFT)
+            entries.pack(side=RIGHT, expand=YES, fill=X)
+            inputs.append((field, entries))
+
+
+        twitt_login.pack(anchor='center')
+
+        #messagebox.showinfo("Information", "1.Login to your Twitter account on developer.twitter.com\n2.Navigate to the Twitter app dashboard and open the Twitter app for which you would like to generate access tokens.\n3.Navigate to the Keys and Tokens page.\n4.Select Create under the Access token & access token secret section.")
+        info = Label(twitt_login,text="Please follow steps: \n1.Login to your Twitter account on developer.twitter.com\n2.Navigate to the Twitter app dashboard and open the Twitter app for which you would like to generate access tokens.\n3.Navigate to the Keys and Tokens page.\n4.Select Create under the Access token & access token secret section.")
+        info.pack(side=BOTTOM,fill=BOTH)
+    
         
 if __name__ == "__main__":
     app = app()
