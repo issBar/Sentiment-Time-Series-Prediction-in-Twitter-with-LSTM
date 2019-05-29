@@ -65,6 +65,7 @@ def run_natural_language_processing(inquery,flag):
       
     #Load an existing trained pickle file
     if flag==True:
+        
         try:
             loaded_model = pickle.load(open(SAVE_FILENAME, 'rb'))
             print("pickle loaded successfully")
@@ -73,7 +74,11 @@ def run_natural_language_processing(inquery,flag):
             print(y_pred)
         except (FileNotFoundError ,IOError):
             print("Error loading file")
+    
+      
 
+        
+    #mechine learning SVM  using straified kfold which divided to 10  
     else:
         Y_big_dataset=big_dataset.iloc[:, 0].values
         
@@ -88,7 +93,7 @@ def run_natural_language_processing(inquery,flag):
             y_train = Y_big_dataset[train_big_dataset]
             y_test = Y_big_dataset[test_big_dataset]
             
-           
+            #Created a pipeline which uses countverctorizer on any word  and we apply linear SVM classifier on the matrix
             clf=Pipeline([('vectorizer', CountVectorizer(analyzer="word",ngram_range=(1,2),tokenizer=word_tokenize, max_features=10000)),('classifier',LinearSVC())])
             clf.fit(X_train,y_train)
             clf_score_list.append(clf.score(X_test,y_test))
@@ -97,6 +102,14 @@ def run_natural_language_processing(inquery,flag):
         print("Svm Score =",clf_score_list)
         print("AVG accuracy svm= ",sum(clf_score_list)/10)
         
+        #save score predicition 
+        try:
+            filename = './pickle/sentiment_score.txt'
+            with open(filename,'w') as textfile:
+                textfile.write(sum(clf_score_list)/10)    
+                
+        except (FileNotFoundError ,IOError):
+            print("No file was found")
         
         #save sentiment analysis finalized model 
         try:
@@ -108,7 +121,7 @@ def run_natural_language_processing(inquery,flag):
        
             
         
-        #save prediction to csv file
+    #save prediction to csv file
     index=0 
     with open("./csvData/"+inquery+"/"+inquery+"_hashtag_tweets_pred.csv", 'w',encoding="utf-8") as csvfile:
         fieldnames=['Predict','Date','Tweets']
@@ -119,6 +132,6 @@ def run_natural_language_processing(inquery,flag):
             index+=1
         print ('\nSaved prediction for tweets to: preprocess_'+inquery+'_hashtag_tweets_pred.csv\n')
 
-
-#run_natural_language_processing("Trump",True)    
+    
+#run_natural_language_processing("gameofthrones",True)    
     

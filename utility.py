@@ -3,7 +3,8 @@ import tkinter as tk
 from tkinter import filedialog
 import csv
 import os
-
+import pandas as pd
+import numpy as np
 def chooseFile():
     
         root = tk.Tk()
@@ -65,3 +66,11 @@ def create_new_folder_by_hashtag(inquery):
     if not os.path.exists(file_path):
         os.makedirs(file_path)
     return file_path
+
+def get_size_of_file(file):
+    try:
+        df=pd.read_csv(file)
+        return df.shape[0]
+    except (FileNotFoundError ,IOError):
+        print("No file was found")
+        return 0

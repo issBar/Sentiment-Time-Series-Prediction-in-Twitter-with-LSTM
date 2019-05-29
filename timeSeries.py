@@ -111,7 +111,6 @@ def run_time_series(inquery,flag):
                 min_time=hours[row]
                     
         
-        
         if count<=size:
             count_by_hour=count_by_hour+1
             if(prediction[row]==1):
@@ -139,4 +138,4 @@ def run_time_series(inquery,flag):
   
 
 
-run_time_series("Trump",True)
+#run_time_series("gameofthrones",True)
