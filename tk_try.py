@@ -43,7 +43,7 @@ import tkinter as tk                # python 3
 from tkinter import font  as tkfont # python 3
 from tkinter import ttk
 from tkinter import messagebox
-from tkthread import tk, TkThread
+#from tkthread import tk, TkThread
 
 
 
@@ -72,7 +72,7 @@ class SampleApp(tk.Tk):
         self.container.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
-        for F in (StartPage, PageOne,TwitterLogin):
+        for F in (StartPage,TwitterLogin):
             page_name = F.__name__
             frame = F(parent=self.container, controller=self)
             self.frames[page_name] = frame
@@ -92,7 +92,6 @@ class SampleApp(tk.Tk):
     def show_status_frame(self,parent,status_class,text,duration):
         st_page=status_class(parent,self,text,duration)
         st_page.grid(row=0, column=0, sticky="nsew")
-
         st_page.tkraise()
         
         
@@ -109,7 +108,7 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-
+        controller.geometry(frame_size)
         #topFrame
         top_frame=tk.Frame(self)
         top_frame.pack_propagate(1)
@@ -124,53 +123,61 @@ class StartPage(tk.Frame):
         login_button.pack(side="right",padx=10)
         #top_label
         top_label=tk.Label(top_frame,text="Twitter prediction",fg=text_color,font=controller.title_font)       
-        top_label.pack(side="top",anchor="center")
-        
-        #middleFrame
-        middleFrame_frame=tk.Frame(self)
-        middleFrame_frame.pack_propagate(1)
-        middleFrame_frame.pack(fill="both",side="top",pady=20,padx=25)
-        #label
-        label_h=tk.Label(middleFrame_frame,text="Insert Hashtag for Prediction :",fg=text_color)
-        label_h.pack(side="left",anchor="w")
-
-        #TextBox
-        self.textbox_h=tk.Entry(middleFrame_frame,bg=button_background_color)
-        self.textbox_h.insert(0, 'Insert Hashtag..')
-        self.textbox_h.bind('<FocusIn>', self.on_entry_click)
-        self.textbox_h.bind('<FocusOut>', self.on_focusout)
-        self.textbox_h.config(fg = 'grey')
-        self.textbox_h.pack(side="left",anchor="e")
+        top_label.pack(side="top",anchor="center",pady=15)
         
         #separator
         self.sep_style=ttk.Style()
         self.sep_style.configure('s.TSeparator',foreground='green')
         separator = ttk.Separator(self, orient='horizontal',style='s.TSeparator')
-        separator.pack(side="top",padx=25,fill='both')
+        separator.pack(side="top",padx=25,pady=15,fill='both')
+        
+        #middleFrame
+        middleFrame_frame=tk.Frame(self)
+        middleFrame_frame.pack_propagate(1)
+        middleFrame_frame.pack(fill="both",anchor="center",pady=15)
+        
+        #topMiddleFrame
+        topMiddleFrame=tk.Frame(middleFrame_frame)
+        topMiddleFrame.pack(side=tk.TOP)
+        
+        
+        #label
+        label_h=tk.Label(topMiddleFrame,text="Insert Hashtag for Prediction :",fg=text_color)
+        label_h.pack(side="left")
+
+        #TextBox
+        self.textbox_h=tk.Entry(topMiddleFrame,bg=button_background_color)
+        self.textbox_h.insert(0, 'Insert Hashtag..')
+        self.textbox_h.bind('<FocusIn>', self.on_entry_click)
+        self.textbox_h.bind('<FocusOut>', self.on_focusout)
+        self.textbox_h.config(fg = 'grey')
+        self.textbox_h.pack(side="right")
+        
+        
 
         #Bottom Frame
-        bottomFrame=tk.Frame(self)
-        bottomFrame.pack(side="top",fill="both",padx=25,pady=25)
+        bottomFrame=tk.Frame(middleFrame_frame)
+        bottomFrame.pack(side="top",padx=25,pady=25)
 
         #label
-        label_ts=tk.Label(bottomFrame,text="Set Duration of a Time-Series : ",fg=text_color)
-        label_ts.pack(side="left")
+        label_ts=tk.Label(bottomFrame,text="Set Duration: ",fg=text_color)
+        label_ts.pack(side=tk.LEFT)
         #option bar
         time_options={"1 Day":1,"2 Days":2,"3 Days":3,"4 Days":4,"5 Days":5,"6 Days":6,"7 Days":7}
         variable=tk.StringVar(bottomFrame)
         variable.set("1 Day")
         option_menu_time=tk.OptionMenu(bottomFrame,variable,*time_options.keys())
         option_menu_time.config(bg=button_background_color,activebackground=button_background_color)
-        option_menu_time.pack(side="left")
+        option_menu_time.pack(anchor='ne')
         variable.trace("w",self.get_duration)
 
         duration=(variable.get()).split('Day')[0]
         
-        runFrame=tk.Frame(self)
-        runFrame.pack(side="top",fill="both",padx=25,pady=25)
+        runFrame=tk.Frame(middleFrame_frame)
+        runFrame.pack(side="top",padx=25,pady=25)
         #run button
         run_button=tk.Button(runFrame,fg=text_color,text="Run",command=lambda: self.check_input(parent,self.textbox_h,duration),bg=button_background_color)
-        run_button.configure(width = 10, activebackground = "#33B5E5", relief = tk.FLAT)
+        run_button.configure(width = 10,height=2, activebackground = "#33B5E5", relief = tk.FLAT)
         run_button.pack(anchor="center")
 
         
@@ -204,23 +211,12 @@ class StartPage(tk.Frame):
 
 
 
-class PageOne(tk.Frame):
-
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        self.controller = controller
-        label = tk.Label(self, text="This is page 1", font=controller.title_font)
-        label.pack(side="top", fill="x", pady=10)
-        button = tk.Button(self, text="Go to the start page",
-                           command=lambda: controller.show_frame("StartPage"))
-        button.pack()
-
-
 class TwitterLogin(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
+        controller.geometry(frame_size)
         button = tk.Button(self, text="return",command=lambda: controller.show_frame("StartPage"))
         button.pack(anchor="w",padx=7,pady=3)
         login_label=tk.Label(self,text="Get Twitter Developer Access :",font=controller.title_font)
@@ -322,7 +318,6 @@ class StatusPage(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.controller = controller
         self.parent=parent    
-        
         self.score_label=0
         
         #top frame
@@ -362,10 +357,12 @@ class StatusPage(tk.Frame):
         #separator = ttk.Separator(self, orient='horizontal')
        #separator.pack(side=tk.TOP,fill='both',padx=15,pady=5)
         
+
         #informationFrame
         self.informationFrame=tk.LabelFrame(self,text='Information')
         self.informationFrame.pack(side=tk.LEFT,fill='both', expand='yes')
-        
+        self.centerInfoFrame=tk.Frame(self.informationFrame)
+        self.centerInfoFrame.pack(anchor='center')
         
         #details Frame
        # self.detailsFrame=tk.Frame(self)
@@ -377,7 +374,7 @@ class StatusPage(tk.Frame):
         self.update_information={}
         for text_l in texts_for_labels:
            
-            row_frame = tk.Frame(self.informationFrame)
+            row_frame = tk.Frame(self.centerInfoFrame)
             process_label=tk.Label(row_frame,text=text_l,fg=text_color,width=20)
             process_label.pack(side=tk.LEFT)
            
@@ -401,18 +398,6 @@ class StatusPage(tk.Frame):
      
         self.informationFrame.pack(side=tk.LEFT)
         
-
-        #separtor 2
-        #separator2 = ttk.Separator(self, orient='vertical')
-       # separator2.pack(side=tk.LEFT,fill='both',padx=15)
-        
-    
-        #label info1
-       # infoLabel=tk.Label(self.informationFrame,text="information")
-      #  infoLabel.pack(side=tk.TOP)
-        
-        
-
         #start thread 
         self.start_submit_thread(self.input_,duration,True,controller)
     
@@ -483,7 +468,7 @@ class StatusPage(tk.Frame):
                 
                 #getting ml score
                 self.score_label=self.load_score_of_ml()
-                self.update_information['Sentiment Analysis'].set(self.score_label+"% accourcy")
+                self.update_information['Sentiment Analysis'].set(self.score_label+"% accuracy")
                 time.sleep(3)
 
 
@@ -513,6 +498,7 @@ class PlotPage(tk.Frame):
         tk.Frame.__init__(self,parent)
         self.controller = controller
         self.text=text
+        controller.geometry("900x700")
         #top frame
         self.topFrame=tk.Frame(self)
         self.topFrame.pack(side=tk.TOP,fill='both')
@@ -556,16 +542,21 @@ class PlotPage(tk.Frame):
         #informationFrame
         self.informationFrame=tk.LabelFrame(self,text='Information')
         self.informationFrame.pack(side=tk.BOTTOM,fill='both', expand='yes')
+        #center information frame
+        self.centerInfoFrame=tk.Frame(self.informationFrame)
+        self.centerInfoFrame.pack(anchor='center')
+        #reading file 
         file='csvData/'+self.text+'/predict_'+self.text+'_hashtag_tweets.csv'
         read_file=pd.read_csv(file)
+        
         self.count_pos=read_file['count_pos'].sum()
         self.count_neg=read_file['count_neg'].sum()
         self.average=read_file['average'].mean()
-        self.count_pos_label=tk.Label(self.informationFrame,text="Total Positive Tweets: "+str(self.count_pos),fg=text_color)
-        self.count_neg_label=tk.Label(self.informationFrame,text="Total Negative Tweets: "+str(self.count_neg),fg=text_color)
+        self.count_pos_label=tk.Label(self.centerInfoFrame,text="Total Positive Tweets: "+str(self.count_pos),fg=text_color)
+        self.count_neg_label=tk.Label(self.centerInfoFrame,text="Total Negative Tweets: "+str(self.count_neg),fg=text_color)
         self.count_pos_label.pack(anchor="nw")
         self.count_neg_label.pack(anchor="nw")
-        self.average_label=tk.Label(self.informationFrame,text="Average score: "+str(self.average),fg=text_color)
+        self.average_label=tk.Label(self.centerInfoFrame,text="Average score: "+str(self.average),fg=text_color)
         self.average_label.pack(anchor="nw")
 
        
@@ -595,6 +586,7 @@ class PlotPage(tk.Frame):
            self.plot_label.configure(image=self.plots_images[self.count])     
            self.plot_label.pack(anchor='center',padx=15,pady=5)
        if self.count==0:
+           self.plot_label.configure(image=self.plots_images[self.count])
            self.left_button['state']=tk.DISABLED
     
 
