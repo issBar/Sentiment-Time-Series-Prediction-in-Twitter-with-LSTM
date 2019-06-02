@@ -28,12 +28,12 @@ import threading
 from PIL import Image, ImageTk
 import time
 import re
-        
+import database as db
 #matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
 import tweepy
-        
+
 
 NLP=reload(NLP)
 TweetCon=reload(TweetCon)
@@ -51,9 +51,18 @@ class SampleApp(tk.Tk):
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-        #self.t_frame = tk.Toplevel()
-        
-        self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold")
+   
+        self.menubar = tk.Menu(self)
+        self.fileMenu = tk.Menu(self.menubar)
+        self.fileMenu.add_command(label="READ ME", command=self.load_README)
+        self.fileMenu.add_separator()
+        self.fileMenu.add_command(label="Exit", command=self.destroy)
+        self.config(menu=self.menubar)
+        self.menubar.add_cascade(label="File", menu=self.fileMenu)
+
+        self.title_font = tkfont.Font(family='Verdana', size=20, weight="bold")
+        self.semi_font=tkfont.Font(family="comic sans ms", size=8)
+
         self.geometry(frame_size)
         #self.configure(bg=backround_color)
         #self.resizable(False,False)
@@ -62,7 +71,7 @@ class SampleApp(tk.Tk):
         # on top of each other, then the one we want visible
         # will be raised above the others
         barFrame=tk.Frame(self)
-        toplabel=tk.Label(barFrame,bg=login_toplabel_color)
+        toplabel=tk.Label(barFrame,bg=button_background_color)
         toplabel.pack(side="top",fill="both")
         barFrame.pack(side="top",fill="both")
         
@@ -100,9 +109,17 @@ class SampleApp(tk.Tk):
         st_page.grid(row=0, column=0, sticky="nsew")
         st_page.tkraise()
 
-    
-
-
+    def load_README(self):
+        #Load txt file to screen
+        #from os import startfile
+        #startfile("C:/Users/itsba/Desktop/Project/README.txt")
+        
+        #load new frame contains txt file
+        file = open("README.txt").read()
+        textframe=tk.Toplevel(self)
+        textbox=tk.Label(textframe,text=file)
+        textbox.pack(side=tk.LEFT)
+        
 class StartPage(tk.Frame):
 
     def __init__(self, parent, controller):
@@ -115,79 +132,86 @@ class StartPage(tk.Frame):
         top_frame.place(x=0,y=0)
         top_frame.pack(fill="both",padx=5,pady=5)
         #login button
-        login_button=tk.Button(top_frame,text="Login",state=tk.ACTIVE,fg=login_toplabel_color,command=lambda : controller.show_frame("TwitterLogin"),bg=button_background_color)
-                
+        self.login_button=tk.Button(top_frame,text="Authenticate with Twitter Developer",fg=login_toplabel_color,command=lambda : controller.show_frame("TwitterLogin"),bg=button_background_color)
+        self.login_button.configure(width = 30,height=1, activebackground = "#33B5E5", relief = tk.GROOVE)
         
-        #login_button['state'] = tk.DISABLED
+        #self.login_button['state'] = tk.DISABLED
 
-        login_button.pack(side="right",padx=10)
+        self.login_button.pack(anchor='nw',pady=15,padx=10)
         #top_label
-        top_label=tk.Label(top_frame,text="Twitter prediction",fg=text_color,font=controller.title_font)       
-        top_label.pack(side="top",anchor="center",pady=15)
+        top_label=tk.Label(top_frame,text="Twitter Prediction",fg=text_color,font=controller.title_font)       
+        top_label.pack(side="top",anchor="center")
         
+        top_label_frame=tk.Frame(self)
+        top_label_frame.configure(bg=button_background_color)
+        top_label_frame.pack(fill="both",padx=5)
+        top_label=tk.Label(top_label_frame,text="based on Sentiment Analysis",bg=button_background_color,fg=text_color,font=controller.semi_font)       
+        top_label.pack(side="right",anchor="center",padx=220)
+        
+        
+        separator_label_frame=tk.Frame(self)
+        separator_label_frame.configure(bg=button_background_color)
+        separator_label_frame.pack(fill="both",padx=5)
         #separator
         self.sep_style=ttk.Style()
         self.sep_style.configure('s.TSeparator',foreground='green')
-        separator = ttk.Separator(self, orient='horizontal',style='s.TSeparator')
-        separator.pack(side="top",padx=25,pady=15,fill='both')
+        separator = ttk.Separator(separator_label_frame, orient='horizontal',style='s.TSeparator')
+        separator.pack(side="top",padx=5,fill='both')
+        
         
         #middleFrame
-        middleFrame_frame=tk.Frame(self)
-        middleFrame_frame.pack_propagate(1)
-        middleFrame_frame.pack(fill="both",anchor="center",pady=15)
-        
-        #topMiddleFrame
-        topMiddleFrame=tk.Frame(middleFrame_frame)
-        topMiddleFrame.pack(side=tk.TOP)
-        
-        
+        middleFrame_frame=tk.Frame(self,bg=button_background_color,borderwidth=15)
+        middleFrame_frame.pack(fill="both",anchor="center")
+           
+        #middleFrame
+        middleFrame_frame_=tk.Frame(middleFrame_frame,bg=button_background_color)
+        middleFrame_frame_.pack(side=tk.TOP,fill="both")
+                
         #label
-        label_h=tk.Label(topMiddleFrame,text="Insert Hashtag for Prediction :",fg=text_color)
-        label_h.pack(side="left")
+        label_h=tk.Label(middleFrame_frame_,text="Insert Hashtag for Prediction :",fg=text_color,bg=button_background_color)
+        label_h.pack(side=tk.LEFT,pady=15)
 
         #TextBox
-        self.textbox_h=tk.Entry(topMiddleFrame,bg=button_background_color)
-        self.textbox_h.insert(0, 'Insert Hashtag..')
+        self.textbox_h=tk.Entry(middleFrame_frame_,bg=button_background_color)
+        self.textbox_h.insert(0, 'Any Topic')
         self.textbox_h.bind('<FocusIn>', self.on_entry_click)
         self.textbox_h.bind('<FocusOut>', self.on_focusout)
         self.textbox_h.config(fg = 'grey')
-        self.textbox_h.pack(side="right")
-        
-        
+        self.textbox_h.pack(side=tk.LEFT,pady=15)
 
-        #Bottom Frame
-        bottomFrame=tk.Frame(middleFrame_frame)
-        bottomFrame.pack(side="top",padx=25,pady=25)
-
+        #middleFrame
+        middleFrame_frame_2=tk.Frame(middleFrame_frame)
+        middleFrame_frame_2.configure(bg=button_background_color)
+        middleFrame_frame_2.pack(side=tk.TOP,fill="both")
+           
         #label
-        label_ts=tk.Label(bottomFrame,text="Set Duration: ",fg=text_color)
+        label_ts=tk.Label(middleFrame_frame_2,text="Set Duration: ",fg=text_color,bg=button_background_color,borderwidth=0)
         label_ts.pack(side=tk.LEFT)
         #option bar
         time_options={"1 Day":1,"2 Days":2,"3 Days":3,"4 Days":4,"5 Days":5,"6 Days":6,"7 Days":7}
-        variable=tk.StringVar(bottomFrame)
+        variable=tk.StringVar(middleFrame_frame_)
         variable.set("1 Day")
-        option_menu_time=tk.OptionMenu(bottomFrame,variable,*time_options.keys())
-        option_menu_time.config(bg=button_background_color,activebackground=button_background_color)
-        option_menu_time.pack(anchor='ne')
+        option_menu_time=tk.OptionMenu(middleFrame_frame_2,variable,*time_options.keys())
+        option_menu_time["menu"].config(fg=login_toplabel_color,bg=button_background_color)
+        option_menu_time.configure(width = 6,height=1,relief=tk.GROOVE,bg=button_background_color,foreground=login_toplabel_color, activebackground = "#33B5E5")
+        option_menu_time.pack(side=tk.LEFT)
         variable.trace("w",self.get_duration)
-
         duration=(variable.get()).split('Day')[0]
         
+        
         runFrame=tk.Frame(middleFrame_frame)
-        runFrame.pack(side="top",padx=25,pady=25)
+        runFrame.pack(side="bottom",pady=25)
         #run button
-        run_button=tk.Button(runFrame,fg=text_color,text="Run",command=lambda: self.check_input(parent,self.textbox_h,duration),bg=button_background_color)
-        run_button.configure(width = 10,height=2, activebackground = "#33B5E5", relief = tk.FLAT)
-        run_button.pack(anchor="center")
+        run_button=tk.Button(runFrame,fg=login_toplabel_color,text="Run",command=lambda: self.check_input(parent,self.textbox_h,duration),bg=button_background_color)
+        run_button.configure(width = 8,height=1, activebackground = "#33B5E5", relief = tk.GROOVE)
+        run_button.pack(anchor="s")
 
         
         
     def check_input(self,parent,textbox_h,duration):
         
         if re.match("^[A-Za-z0-9_-]*$", textbox_h.get()):
-            
-            self.controller.show_status_frame(parent,StatusPage,textbox_h,duration)
-            
+            self.controller.show_status_frame(parent,StatusPage,textbox_h,duration) 
         else:
             messagebox.showinfo("Information","can only accept a-z ,A-Z,0-9")        
        
@@ -198,14 +222,14 @@ class StartPage(tk.Frame):
 
     def on_entry_click(self,event):
         """function that gets called whenever entry is clicked"""
-        if self.textbox_h.get() == 'Insert Hashtag..':
+        if self.textbox_h.get() == 'Any Topic':
             self.textbox_h.delete(0, "end") # delete all the text in the entry
             self.textbox_h.insert(0, '') #Insert blank for user input
             self.textbox_h.config(fg = text_color)
             
     def on_focusout(self,event):
         if self.textbox_h.get() == '':
-            self.textbox_h.insert(0, 'Insert Hashtag..')
+            self.textbox_h.insert(0, 'Any Topic')
             self.textbox_h.config(fg=text_color)
 
 
@@ -293,6 +317,8 @@ class TwitterLogin(tk.Frame):
                 #show user name
                 user = api.me()
                 print("success : ",user.name)
+                db.set_values(consumer_key,consumer_secret,access_token,access_token_secret)
+                print("success adding to db")
                 time.sleep(1)
                 tk.messagebox.showinfo(message="Success login to : "+user.name)
                 self.controller.show_frame("StartPage")
@@ -505,11 +531,11 @@ class PlotPage(tk.Frame):
         #back button
         self.back_button=tk.Button(self.topFrame,fg=text_color,text="Back",command=lambda:self.controller.show_frame("StartPage"),bg=button_background_color)
         self.back_button.configure(width = 10, activebackground = "#33B5E5", relief = tk.FLAT)
-        self.back_button.pack(padx=10,pady=10,side=tk.LEFT,anchor="ne")
+        self.back_button.pack(padx=10,pady=10,anchor="nw")
       
         #Title label
         self.title_label=tk.Label(self.topFrame,text="Prediction Plots",fg=text_color,font=controller.title_font)
-        self.title_label.pack(anchor="center")
+        self.title_label.pack(anchor="center",pady=10)
         #Separator
         separator = ttk.Separator(self, orient='horizontal')
         separator.pack(side=tk.TOP,fill='both',padx=15,pady=5)
