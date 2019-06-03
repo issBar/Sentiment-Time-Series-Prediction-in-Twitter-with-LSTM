@@ -21,16 +21,18 @@ from tweepy import Stream
 import pandas as pd
 import os.path
 import utility as uti
+import DataBase
+
 file_path='./csvData/hashtag_tweets.csv'
 
 class TwitterClient(object):
 
     
-    def __init__(self):
-        consumer_key = 'i5UW3ELVfZMBo7v9QfJ5bBK4q'
-        consumer_secret = 'PzNZLrr8zdvEi3MkHv43mkA6GmgwP8g6J12eDAsfU1HiYpGtZ7'
-        access_token = '469641234-wAc1uMHBENJwI5S0SUFdED63dMlWwTTTdOVHIrOL'
-        access_token_secret = '3DSGRzcuFEnRIPzIQaRn17e2xXBARKh1fTlis1H1tGHz5'
+    def __init__(self,consumer_key,consumer_secret,access_token,access_token_secret):
+        #consumer_key = 'i5UW3ELVfZMBo7v9QfJ5bBK4q'
+        #consumer_secret = 'PzNZLrr8zdvEi3MkHv43mkA6GmgwP8g6J12eDAsfU1HiYpGtZ7'
+        #access_token = '469641234-wAc1uMHBENJwI5S0SUFdED63dMlWwTTTdOVHIrOL'
+        #access_token_secret = '3DSGRzcuFEnRIPzIQaRn17e2xXBARKh1fTlis1H1tGHz5'
         try: 
             # create OAuthHandler object 
             self.auth = OAuthHandler(consumer_key, consumer_secret) 
@@ -107,10 +109,9 @@ def createCsv(inquery,tweets):
 def runTweetCon(inquery,runtime):
     file_path=uti.create_new_folder_by_hashtag(inquery)
     
-       
-        
+    consumer_key,consumer_secret,access_token,access_token_secret=DataBase.get_authentication()   
     all_tweets=[]                       
-    api=TwitterClient()
+    api=TwitterClient(consumer_key,consumer_secret,access_token,access_token_secret)
     tweets = api.getTweets(query = '#'+inquery+' -filter:retweets',count =100)
     all_tweets=tweets
     

@@ -28,17 +28,18 @@ import threading
 from PIL import Image, ImageTk
 import time
 import re
-import database as db
 #matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
 import tweepy
+import DataBase
 
 
 NLP=reload(NLP)
 TweetCon=reload(TweetCon)
 preprocess=reload(preprocess)
 timeSeries=reload(timeSeries)
+DataBase=reload(DataBase)
 import tkinter as tk                # python 3
 from tkinter import font  as tkfont # python 3
 from tkinter import ttk
@@ -131,10 +132,24 @@ class StartPage(tk.Frame):
         top_frame.pack_propagate(1)
         top_frame.place(x=0,y=0)
         top_frame.pack(fill="both",padx=5,pady=5)
+        #checking if user exist
+        login_text,flag=self.get_user_name()
+        print('flag==',flag)
+        
         #login button
-        self.login_button=tk.Button(top_frame,text="Authenticate with Twitter Developer",fg=login_toplabel_color,command=lambda : controller.show_frame("TwitterLogin"),bg=button_background_color)
+        self.login_button=tk.Button(top_frame,fg=login_toplabel_color,command=lambda : controller.show_frame("TwitterLogin"),bg=button_background_color)
         self.login_button.configure(width = 30,height=1, activebackground = "#33B5E5", relief = tk.GROOVE)
         
+        if flag==True:
+            print("True")
+            self.login_button.config(text="Authenticate verified , "+login_text,state=tk.DISABLED,fg=login_toplabel_color)
+            self.login_button.config(width = 45,height=1, activebackground = "#33B5E5", relief = tk.GROOVE)
+            
+        else:
+            self.login_button.config(text=login_text,state=tk.NORMAL) 
+            
+                                    
+                                    
         #self.login_button['state'] = tk.DISABLED
 
         self.login_button.pack(anchor='nw',pady=15,padx=10)
@@ -204,9 +219,14 @@ class StartPage(tk.Frame):
         #run button
         run_button=tk.Button(runFrame,fg=login_toplabel_color,text="Run",command=lambda: self.check_input(parent,self.textbox_h,duration),bg=button_background_color)
         run_button.configure(width = 8,height=1, activebackground = "#33B5E5", relief = tk.GROOVE)
+        if flag==False:
+           run_button.config(command=lambda: self.user_error_dialog)                       
+                             
         run_button.pack(anchor="s")
 
+    def user_error_dialog(self):
         
+         messagebox.showinfo("Please authentication with twitter developer account.")    
         
     def check_input(self,parent,textbox_h,duration):
         
@@ -231,6 +251,18 @@ class StartPage(tk.Frame):
         if self.textbox_h.get() == '':
             self.textbox_h.insert(0, 'Any Topic')
             self.textbox_h.config(fg=text_color)
+            
+    def get_user_name(self):
+        user=DataBase.get_user_name()
+
+        if user!='':
+            s="Hello "+user
+           
+            return s,True
+        else:
+           
+            return "Authenticate with Twitter Developer",False
+        
 
 
 
@@ -300,13 +332,11 @@ class TwitterLogin(tk.Frame):
         #access_token=entries[2].get()
         #access_token_secret=entries[3].get()
         
-
         consumer_key = 'i5UW3ELVfZMBo7v9QfJ5bBK4q'
         consumer_secret = 'PzNZLrr8zdvEi3MkHv43mkA6GmgwP8g6J12eDAsfU1HiYpGtZ7'
         access_token = '469641234-wAc1uMHBENJwI5S0SUFdED63dMlWwTTTdOVHIrOL'
         access_token_secret = '3DSGRzcuFEnRIPzIQaRn17e2xXBARKh1fTlis1H1tGHz5'
         
-
         # if consumer_key==None
         try:
             if len(consumer_key)!=0 and len(consumer_secret)!=0 and len(access_token)!=0 and len(access_token_secret)!=0:
@@ -317,7 +347,8 @@ class TwitterLogin(tk.Frame):
                 #show user name
                 user = api.me()
                 print("success : ",user.name)
-                db.set_values(consumer_key,consumer_secret,access_token,access_token_secret)
+                DataBase.dropTable()
+                DataBase.create_connection(user.name,consumer_key,consumer_secret,access_token,access_token_secret)
                 print("success adding to db")
                 time.sleep(1)
                 tk.messagebox.showinfo(message="Success login to : "+user.name)
@@ -330,7 +361,6 @@ class TwitterLogin(tk.Frame):
              print("Error: Authentication Failed") 
 
 
-        
     def on_enter(self, event):
         self.information_label.configure(text=self.event)
 
