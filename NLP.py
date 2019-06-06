@@ -75,10 +75,9 @@ def run_natural_language_processing(inquery,flag):
         except (FileNotFoundError ,IOError):
             print("Error loading file")
     
-      
-
+     
         
-    #mechine learning SVM  using straified kfold which divided to 10  
+    #machine learning SVM  using straified kfold which divided to 10  
     else:
         Y_big_dataset=big_dataset.iloc[:, 0].values
         

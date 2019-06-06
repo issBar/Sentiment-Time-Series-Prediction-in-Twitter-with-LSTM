@@ -66,14 +66,14 @@ def readFile(inquery):
     return file_to_read
 
 
-def main_pred(input_):
+def main_pred(input_,percentage):
     new_file="./csvData/"+input_+"/train_predict_"+input_+"_hashtag_tweets.csv"
     file=readFile(input_)
     df=pd.read_csv(file).set_index('Date and time')
     size_of_file=df.shape[0]+1
-
+    
     #size of prediction time - (forward)
-    size_of_prediction=int(size_of_file/5)
+    size_of_prediction=int(size_of_file*percentage)
     fields_name=['Date and time', 'count_pos','count_neg','average']
     
     array_of_data=df.iloc[:size_of_file-size_of_prediction,:]
@@ -136,9 +136,11 @@ def run_LSTM(input_,round_index,size_of_prediction):
     for i in range(n_steps):
         series=pd.concat([series,df_c.shift(-(i+1))],axis=1)
 
-    series.dropna(axis=0,inplace=True)
-        
 
+    series.dropna(axis=0,inplace=True)
+
+
+    #Train and test lists
     train=series.iloc[:,:-1]
     test=series.iloc[:,n_steps:n_steps+1]
 
@@ -250,8 +252,13 @@ def run_LSTM(input_,round_index,size_of_prediction):
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(['train', 'validation'], loc='upper right')
-    plt.show()
     
+    path_loss='./csvData/'+input_+'/plots/'
+    if not os.path.exists(path_loss):
+        os.makedirs(path_loss)
+    plt.savefig('./csvData/'+input_+'/plots/'+input_+'_loss_plot_'+str(round_index)+'.png')
+    plt.show()
+
 
     return dt_dic,df.index[len(df)-1],y_pred[0]
    

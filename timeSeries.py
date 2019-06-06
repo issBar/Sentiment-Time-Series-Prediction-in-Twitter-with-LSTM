@@ -13,13 +13,12 @@ import utility as uti
 
     
 def handling_missing_values(inquery):
-    
+    #Filling in missing hours of time-series and setting default value as average of both previous and next value
+    #This function is needed in-order to create a correct time-series dependencies
     file_to_read="./csvData/"+inquery+"/predict_"+inquery+"_hashtag_tweets.csv"
     df=pd.read_csv(file_to_read)
     size_of_file=df.shape[0]
     df['Date and time']=pd.to_datetime(df['Date and time']) #convert to date time
-    
-
     df.index=pd.to_datetime(df.index) #convert to date and time
     df=df.set_index('Date and time').resample('H').mean().fillna((df['average'].fillna(method='ffill')+df['average'].fillna(method='bfill'))/2)
     df['average']=df['average'].where(df['average'].notnull(), other=(df['average'].fillna(method='ffill')+df['average'].fillna(method='bfill'))/2)
@@ -35,7 +34,6 @@ def create_pred_file(date_time_dic,inquery):
         fieldnames=['Date and time','count_pos','count_neg','average']
         writer=csv.DictWriter(csvfile,fieldnames=fieldnames)
         writer.writeheader()
-        #print (date_time_dic.items())
         for key,value  in date_time_dic.items():
             for hour,count_pos,count_neg,avg in value:  
                     temp=min_date_to_min_dt(key,hour)
@@ -65,6 +63,7 @@ def run_time_series(inquery,flag):
     df=pd.read_csv(file_to_read).set_index('Date')
     df.index=pd.to_datetime(df.index) #convert to date time
     df = df.sort_values(["Date"])
+    #sets as a series of values
     ts=pd.Series(df.loc[:,'Predict'].values,index=df.index,name="tweet pred",)
 
 
@@ -102,7 +101,8 @@ def run_time_series(inquery,flag):
     
     for row in reversed(range(size)):
         count=count+1
-                
+
+        #creates a avg list which calculates the average of current hour tweets
         if hours[row]!=min_time :
                 avglist.append((int(min_time),sum_pos,sum_neg,(((sum_pos)-(sum_neg))/count_by_hour)))
                 count_by_hour=0
@@ -130,7 +130,7 @@ def run_time_series(inquery,flag):
         if date[row]==max_date:
             date_time_dic[max_date]=avglist
         
- 
+
     #save to  csv file 
     create_pred_file(date_time_dic,inquery)
     
@@ -138,4 +138,4 @@ def run_time_series(inquery,flag):
   
 
 
-#run_time_series("gameofthrones",True)
+run_time_series("gameofthrones",True)
