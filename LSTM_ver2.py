@@ -53,7 +53,17 @@ def save_plot__of_predictions(input_,size_of_prediction):
     plt.plot(x_time,y_predictions ,color='orange',marker='o')
     
     plt.suptitle('Prediction graph for #'+input_,fontsize=12)
-    plt.savefig('./csvData/'+input_+'/plots/'+input_+'_prediction_plot.png')
+                 
+    try:
+            
+        path_loss='./csvData/'+input_+'/plots/'
+        if not os.path.exists(path_loss):
+            os.makedirs(path_loss)
+        plt.savefig('./csvData/'+input_+'/plots/'+input_+'_prediction_plot.png')
+    except FileNotFoundError:
+        print('file not exist!\n')
+            
+            
     '''
     plt.title("#"+input_+" prediction graph ")#for date : +key)
     plt.gcf().autofmt_xdate(bottom=0.3, rotation=50, ha='right', which=None)
@@ -93,11 +103,14 @@ def main_pred(input_,percentage):
     print('last date:',date)
     
     #set o' clocks
+    dt_dict={}
     date=datetime.datetime(int(date[0]),int(date[1]),int(date[2]),int(time_[0]),0,0)
     time_pred_dic=[]
+    predicted_value=[]
     for i in range(size_of_prediction):
         
-        dt_dict,r_time,predicted_value=run_LSTM(input_,i+1,size_of_prediction)
+        dt_dict,predicted_value=run_LSTM(input_,i+1,size_of_prediction)
+        
         save_to_file = open(new_file, 'a',encoding="utf-8")
         writer=csv.DictWriter(save_to_file,fieldnames=fields_name)
         date+=datetime.timedelta(hours=1)
@@ -105,12 +118,15 @@ def main_pred(input_,percentage):
         writer.writerow({'Date and time':date, 'count_pos':0,'count_neg':0,'average':predicted_value[0]})
         save_to_file.close()
         time.sleep(2)
-        
+    #saving plots    
     save_plot__of_predictions(input_,size_of_prediction)
-    return dt_dict,time,predicted_value
+    
+    print("dt_dict==",dt_dict)
+    return dt_dict,predicted_value,size_of_prediction
 
 def run_LSTM(input_,round_index,size_of_prediction):
     #taking real file
+    print("run_lstm\n")
     real_file=readFile(input_)
     df_o=pd.read_csv(real_file)
     size_of_o_file=df_o.shape[0]
@@ -253,15 +269,20 @@ def run_LSTM(input_,round_index,size_of_prediction):
     plt.xlabel('epoch')
     plt.legend(['train', 'validation'], loc='upper right')
     
-    path_loss='./csvData/'+input_+'/plots/'
-    if not os.path.exists(path_loss):
-        os.makedirs(path_loss)
-    plt.savefig('./csvData/'+input_+'/plots/'+input_+'_loss_plot_'+str(round_index)+'.png')
-    plt.show()
-
-
-    return dt_dic,df.index[len(df)-1],y_pred[0]
+    try:
+            
+        path_loss='./csvData/'+input_+'/plots/'
+        if not os.path.exists(path_loss):
+            os.makedirs(path_loss)
+        plt.savefig('./csvData/'+input_+'/plots/'+input_+'_loss_plot_'+str(round_index)+'.png')
+        print("loss fig saved\n")
+        plt.show()
+    except FileNotFoundError:
+        print('file not exist!\n')
+    #print(dt_dic)
+    return dt_dic,y_pred[0]
    
     
-#main_pred('Trump')
+#main_pred('Trump',0.2)
 #main_pred('gameofthrones')  
+#main_pred('iphone',0.1)
