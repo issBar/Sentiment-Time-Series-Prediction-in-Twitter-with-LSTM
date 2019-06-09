@@ -33,9 +33,13 @@ import sklearn.cross_validation as cross_validation
 SAVE_FILENAME= './pickle/sentiment_analysis_finalized_model.sav'
 
 
-#load a finalized machine from a pickle file
+#load  trained machine from a pickle file
 def load_sentiment_analysis_finalized_m(filename):
-    loaded_model = pickle.load(open(filename, 'rb'))
+    try:
+        loaded_model = pickle.load(open(filename, 'rb'))
+    except (FileNotFoundError ,IOError):
+        print("Error loading pickle file")
+        exit
     return loaded_model    
 
 
@@ -52,9 +56,11 @@ def get_list_of_sentences(in_data,size):
 def run_natural_language_processing(inquery,flag):
     print("starting function run_natural_language_processing\n")
     # Importing the dataset
-    big_dataset = pd.read_csv('./csvData/preprocess_dataset_sample.csv')
-    selected_tweets= pd.read_csv('./csvData/'+inquery+'/preprocess_'+inquery+'_hashtag_tweets.csv')
-    
+    try:
+        big_dataset = pd.read_csv('./csvData/preprocess_dataset_sample.csv')
+        selected_tweets= pd.read_csv('./csvData/'+inquery+'/preprocess_'+inquery+'_hashtag_tweets.csv')
+    except FileNotFoundError:
+        print("Error loading file")
     dataset_size=big_dataset.shape[0] #size of pp Dataset
     tweets_data_size=selected_tweets.shape[0] #size of fetched pp Tweets
     
@@ -77,7 +83,7 @@ def run_natural_language_processing(inquery,flag):
     
      
         
-    #machine learning SVM  using straified kfold which divided to 10  
+    #machine learning linear SVM  using straified k=10 fold 
     else:
         Y_big_dataset=big_dataset.iloc[:, 0].values
         
@@ -122,15 +128,17 @@ def run_natural_language_processing(inquery,flag):
         
     #save prediction to csv file
     index=0 
-    with open("./csvData/"+inquery+"/"+inquery+"_hashtag_tweets_pred.csv", 'w',encoding="utf-8") as csvfile:
-        fieldnames=['Predict','Date','Tweets']
-        writer=csv.DictWriter(csvfile,fieldnames=fieldnames)
-        writer.writeheader()
-        for i  in range(tweets_data_size):
-            writer.writerow({'Predict':y_pred[index],'Date':selected_tweets['Date'][i],'Tweets':selected_tweets['Tweets'][i]})
-            index+=1
-        print ('\nSaved prediction for tweets to: preprocess_'+inquery+'_hashtag_tweets_pred.csv\n')
-
+    try:
+        with open("./csvData/"+inquery+"/"+inquery+"_hashtag_tweets_pred.csv", 'w',encoding="utf-8") as csvfile:
+            fieldnames=['Predict','Date','Tweets']
+            writer=csv.DictWriter(csvfile,fieldnames=fieldnames)
+            writer.writeheader()
+            for i  in range(tweets_data_size):
+                writer.writerow({'Predict':y_pred[index],'Date':selected_tweets['Date'][i],'Tweets':selected_tweets['Tweets'][i]})
+                index+=1
+            print ('\nSaved prediction for tweets to: preprocess_'+inquery+'_hashtag_tweets_pred.csv\n')
+    except IOError:
+        print("File error")
     
 #run_natural_language_processing("gameofthrones",True)    
-    
+#run_natural_language_processing("ml",True)

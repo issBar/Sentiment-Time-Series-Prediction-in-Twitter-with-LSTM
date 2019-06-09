@@ -5,28 +5,73 @@ Created on Sat Mar 23 17:19:12 2019
 
 @author: bar
 """
+import matplotlib.pyplot as plt
 import pandas as pd
 import csv
 import datetime
 import utility as uti
+import numpy as np
+import os
 
+def smoothing_trends(inquery):
+    #taking data from csv  
+    file_to_read="./csvData/"+inquery+"/predict_"+inquery+"_hashtag_tweets.csv"
 
+    df=pd.read_csv(file_to_read)
+    df=df.set_index('Date and time')
+    array_of_data=df.iloc[:,:-1]
+
+    df.drop(['count_pos','count_neg'],axis=1,inplace=True)
+    
+    data=np.array(df.iloc[:,-1])
+    print(data)
+    series=pd.Series(data)
+    
+    rolling=series.rolling(window=3,min_periods=1)
+    rolling_mean=rolling.mean()
+    print(rolling_mean)
+    data_=[]
+    for i in range(series.shape[0]):
+        data_.append(rolling_mean[i])
+        
+    array_of_data['average']=data_
+        
+    print(array_of_data)
+    pd.DataFrame(array_of_data).to_csv(file_to_read)
+    
+    print("Series plot\n")
+    
+    plt.figure()   
+    plt.plot(series)
+    plt.plot(rolling_mean)
+    plt.legend(['real data','smooth data'])
+    
+    try:
+        path_loss='./csvData/'+inquery+'/plots/'
+        if not os.path.exists(path_loss):
+            os.makedirs(path_loss)
+       
+        plt.savefig('./csvData/'+inquery+'/plots/'+inquery+'_smoothing_plot.png')
+    except FileNotFoundError:
+        print('file not exist!\n')
+        
+   
+    
     
 def handling_missing_values(inquery):
     #Filling in missing hours of time-series and setting default value as average of both previous and next value
     #This function is needed in-order to create a correct time-series dependencies
     file_to_read="./csvData/"+inquery+"/predict_"+inquery+"_hashtag_tweets.csv"
     df=pd.read_csv(file_to_read)
-    size_of_file=df.shape[0]
+    #size_of_file=df.shape[0]
     df['Date and time']=pd.to_datetime(df['Date and time']) #convert to date time
     df.index=pd.to_datetime(df.index) #convert to date and time
     df=df.set_index('Date and time').resample('H').mean().fillna((df['average'].fillna(method='ffill')+df['average'].fillna(method='bfill'))/2)
     df['average']=df['average'].where(df['average'].notnull(), other=(df['average'].fillna(method='ffill')+df['average'].fillna(method='bfill'))/2)
     array_of_data=df.iloc[:]
-    print(array_of_data)
     pd.DataFrame(array_of_data).to_csv(file_to_read)
 
-    
+    print("handling_missing_values sucsees\n")
     
     
 def create_pred_file(date_time_dic,inquery):
@@ -50,22 +95,19 @@ def min_date_to_min_dt(min_date,min_hour):
     return date_and_time
 
 
-def run_time_series(inquery,flag):
+def run_time_series(inquery):
     
-    #check if inquery is from user input
-    if(flag==True):
-        file_to_read="./csvData/"+inquery+"/"+inquery+"_hashtag_tweets_pred.csv"
-    else:
-        file_to_read=uti.chooseFile()
-        print(file_to_read)
-        
+    
+    file_to_read="./csvData/"+inquery+"/"+inquery+"_hashtag_tweets_pred.csv"
+       
     #reading from file 
     df=pd.read_csv(file_to_read).set_index('Date')
     df.index=pd.to_datetime(df.index) #convert to date time
     df = df.sort_values(["Date"])
+    print("df index=",df.index)
     #sets as a series of values
-    ts=pd.Series(df.loc[:,'Predict'].values,index=df.index,name="tweet pred",)
-
+    
+  
 
     #spliting data from csv and save them to lists
     avglist=[]
@@ -136,6 +178,6 @@ def run_time_series(inquery,flag):
     
     handling_missing_values(inquery)
   
+    smoothing_trends(inquery)
 
-
-run_time_series("gameofthrones",True)
+#run_time_series("ml")
