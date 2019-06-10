@@ -20,6 +20,9 @@ import time
 from matplotlib.dates import DateFormatter
 import pylab as pl
 import matplotlib.dates as mdates
+from keras import backend as K
+
+
 
 def save_plot__of_predictions(input_,size_of_prediction):
     
@@ -49,7 +52,7 @@ def save_plot__of_predictions(input_,size_of_prediction):
     plt.ylim([-1,1])
     #plt.plot(df.index,df['average'])
     plt.plot(original_x,original_y,color='blue')
-    plt.plot(x_time,y_predictions ,color='orange',marker='o')
+    plt.plot(x_time,y_predictions ,color='orange')
     
     plt.suptitle('Prediction graph for #'+input_,fontsize=12)
                  
@@ -75,7 +78,7 @@ def readFile(inquery):
     return file_to_read
 
 
-def main_pred(input_,percentage):
+def main_pred(input_,percentage,progressBar):
     new_file="./csvData/"+input_+"/train_predict_"+input_+"_hashtag_tweets.csv"
     file=readFile(input_)
     df=pd.read_csv(file).set_index('Date and time')
@@ -106,6 +109,7 @@ def main_pred(input_,percentage):
     date=datetime.datetime(int(date[0]),int(date[1]),int(date[2]),int(time_[0]),0,0)
     time_pred_dic=[]
     predicted_value=[]
+    progressBar['maximum']=10*size_of_prediction
     for i in range(size_of_prediction):
         
         dt_dict,predicted_value=run_LSTM(input_,i+1,size_of_prediction)
@@ -116,6 +120,7 @@ def main_pred(input_,percentage):
         print(' new Date and time:',date)
         writer.writerow({'Date and time':date, 'count_pos':0,'count_neg':0,'average':predicted_value[0]})
         save_to_file.close()
+        progressBar['value']+=10
         time.sleep(2)
     #saving plots    
     save_plot__of_predictions(input_,size_of_prediction)
@@ -277,9 +282,13 @@ def run_LSTM(input_,round_index,size_of_prediction):
     except FileNotFoundError:
         print('file not exist!\n')
     #print(dt_dic)
+    #import gc
+    
+   # gc.collect
+    K.clear_session()
     return dt_dic,y_pred[0]
    
     
-main_pred('Trump',0.2)
+#main_pred('Trump',0.2)
 #main_pred('gameofthrones')  
 #main_pred('iphone',0.1)
