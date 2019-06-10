@@ -40,6 +40,10 @@ Numpy : pip install numpy
 
 ### 2. Insert a Hashtag that you want to predict 
        Note : It is recommended to use hot topics.
+       ```
+       If you want to run LSTM only please Insert Hashtag and select 'Run LSTM Only ' -> And move to step #5
+        *NOTE : You must have the following path : 'predict_yourInput_hashtag_tweets.csv'
+       ```
 
 
 ### 3. Set duration for fetching tweets 
@@ -61,12 +65,15 @@ Numpy : pip install numpy
    Produce csv : yourInput_hashtag_tweets_pred
    
    
-### 5. Select percentage for prediction : 
+### 5. Select percentage for prediction & Use Stationary/Non-Stationary Data
        Example : 10% Out of 24 hours will be 2.4 hours -> 2 hours prediction.
-   
+ 
+ 
    
 ### 6. Select Start -> 
 
+   #### LSTM Class :
+   
    * Time-Series
    Creating stationary data by smoothing trends. replacing NaN values with Moving average algorithm 
    Produce csv : predict_yourInput_hashtag_tweets.csv
@@ -76,5 +83,6 @@ Numpy : pip install numpy
    Building a neural network using LSTM units.
    Produce CSV : train_predict_yourInput_hashtag_tweets
    
-   NOTE :   Each Hashtag will also plot time-series graph s & loss plots.
+   NOTE :   Each Date will plot time-series graph 
+   
    
