@@ -3,13 +3,14 @@
 Project support Python 3.x+
 Note: It is recommended to use Anaconda distribution of Python.
 
+*NOTE Please extract csvData to your Directory
+
 ## Requirements 
 ```
 Tweepy : pip install tweepy
 ```
 ```
 Pandas : pip install pandas
-
 ```
 ```
 Scikit-learn : pip install scikit-learn
@@ -75,5 +76,5 @@ Numpy : pip install numpy
    Building a neural network using LSTM units.
    Produce CSV : train_predict_yourInput_hashtag_tweets
    
-   NOTE :   Each Hashtag will also plot each time-series & loss plots.
+   NOTE :   Each Hashtag will also plot time-series graph s & loss plots.
    
