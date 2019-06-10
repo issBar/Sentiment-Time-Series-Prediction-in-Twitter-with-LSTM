@@ -43,7 +43,7 @@ class TwitterClient(object):
   
         except: 
             print("Error: Authentication Failed") 
-        
+            
             
     def getTweets(self,query,count=10):
          tweets = [] 
@@ -108,16 +108,15 @@ def createCsv(inquery,tweets):
                          
 def runTweetCon(inquery,runtime):
     file_path=uti.create_new_folder_by_hashtag(inquery)
+    
     consumer_key,consumer_secret,access_token,access_token_secret=DataBase.get_authentication()   
     all_tweets=[]                       
     api=TwitterClient(consumer_key,consumer_secret,access_token,access_token_secret)
     tweets = api.getTweets(query = '#'+inquery+' -filter:retweets',count =100)
     all_tweets=tweets
-    
-    if len(all_tweets)>0:
+
+    if(len(all_tweets)>0):        
         createCsv(inquery,all_tweets)
-    
-    
     
     return len(all_tweets)
           

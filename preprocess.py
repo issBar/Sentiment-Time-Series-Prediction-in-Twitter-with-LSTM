@@ -91,21 +91,16 @@ def preprocess_tweet(tweet):
 
 
 def preprocess_dataset(csv_file_name,csv_file_name_p):
-    try:
-        df=pd.read_csv(csv_file_name,header=None,usecols=[0,2,5], names=['Predict','Date','Tweets'],encoding="iso-8859-1")
-        size=df.shape[0]
-        with open(csv_file_name_p, 'w',encoding="utf-8") as csvfile:
-            fieldnames=['Predict','Date','Tweets']
-            writer=csv.DictWriter(csvfile,fieldnames=fieldnames)
-            writer.writeheader()
-            for i in range(size):
-                processed_tweet=preprocess_tweet(str(df['Tweets'][i]))
-                writer.writerow({'Predict':str(df['Predict'][i]),'Date':str(df['Date'][i]),'Tweets':processed_tweet})
-    except FileNotFoundError:        
-        print("Error in file")
-        exit
-        
-
+    df=pd.read_csv(csv_file_name,header=None,usecols=[0,2,5], names=['Predict','Date','Tweets'],encoding="iso-8859-1")
+    size=df.shape[0]
+    with open(csv_file_name_p, 'w',encoding="utf-8") as csvfile:
+        fieldnames=['Predict','Date','Tweets']
+        writer=csv.DictWriter(csvfile,fieldnames=fieldnames)
+        writer.writeheader()
+        for i in range(size):
+            processed_tweet=preprocess_tweet(str(df['Tweets'][i]))
+            writer.writerow({'Predict':str(df['Predict'][i]),'Date':str(df['Date'][i]),'Tweets':processed_tweet})
+            
     print ('\nSaved processed tweets to: %s' % csv_file_name_p)
     
     
@@ -115,58 +110,48 @@ def preprocess_Tweets(csv_file_name, processed_file_name):
     fields_name=['Predict','Date','Tweets']
     writer=csv.DictWriter(save_to_file,fieldnames=fields_name)
     writer.writeheader()
-    try:
-        with open(csv_file_name, 'r',encoding="utf-8") as csvt:
-            reader=csv.DictReader(csvt)
-            for row in reader:
-                processed_tweet = preprocess_tweet(row['Tweets'])
-                writer.writerow({'Predict':'none','Date':row['Date'] , 'Tweets':processed_tweet })
-        save_to_file.close()
-        print ('\nSaved processed tweets to: %s' % processed_file_name)
-        return processed_file_name
-    except FileNotFoundError:  
-        print("Error in file")
-        exit
 
+    with open(csv_file_name, 'r',encoding="utf-8") as csvt:
+        reader=csv.DictReader(csvt)
+        for row in reader:
+            processed_tweet = preprocess_tweet(row['Tweets'])
+            writer.writerow({'Predict':'none','Date':row['Date'] , 'Tweets':processed_tweet })
+    save_to_file.close()
+    print ('\nSaved processed tweets to: %s' % processed_file_name)
+    return processed_file_name
 
     
 def divide_dataset(csv_file_name,preprocessed_dataset_sample):
     df=pd.read_csv(csv_file_name,header=None,usecols=[0,2,5], names=['Predict','Date','Tweets'],encoding="iso-8859-1")
     count_neg=800000
-    try:
-        with open(preprocessed_dataset_sample, 'w',encoding="utf-8") as csvfile:
-            fieldnames=['Predict','Date','Tweets']
-            writer=csv.DictWriter(csvfile,fieldnames=fieldnames)
-            writer.writeheader()
-            for i in range(800000):
-                processed_tweet=preprocess_tweet(str(df['Tweets'][i]))
-                if(str(df['Predict'][i])=='0'):
-                    writer.writerow({'Predict':'1','Date':str(df['Date'][i]),'Tweets':processed_tweet})
-            for i in range(count_neg,count_neg+800000):
-                
-                processed_tweet=preprocess_tweet(str(df['Tweets'][i]))
-                if(str(df['Predict'][i])=='4'):
-                    writer.writerow({'Predict':'-1','Date':str(df['Date'][i]),'Tweets':processed_tweet})
-    
-        print ('\nSaved  divid processed tweets to: %s' % preprocessed_dataset_sample)
-    except FileNotFoundError:  
-        print("Error in file")
-        exit
+    #str(df['Predict'][i])
+    with open(preprocessed_dataset_sample, 'w',encoding="utf-8") as csvfile:
+        fieldnames=['Predict','Date','Tweets']
+        writer=csv.DictWriter(csvfile,fieldnames=fieldnames)
+        writer.writeheader()
+        for i in range(800000):
+            processed_tweet=preprocess_tweet(str(df['Tweets'][i]))
+            if(str(df['Predict'][i])=='0'):
+                writer.writerow({'Predict':'1','Date':str(df['Date'][i]),'Tweets':processed_tweet})
+        for i in range(count_neg,count_neg+800000):
+            
+            processed_tweet=preprocess_tweet(str(df['Tweets'][i]))
+            if(str(df['Predict'][i])=='4'):
+                writer.writerow({'Predict':'-1','Date':str(df['Date'][i]),'Tweets':processed_tweet})
 
+    print ('\nSaved  divid processed tweets to: %s' % preprocessed_dataset_sample)
+    
 
 def run_preprocess_dataset():
     print('start function preprocess_dataset\n')
     preprocess_dataset(file_data_set[0],file_data_set[1])
     
+
 def run_preprocess_Tweets(inquery):
-    
-    if inquery!=' ':
+    if(inquery!=' '):
         file_tweets=["./csvData/"+inquery+"/"+inquery+"_hashtag_tweets.csv","./csvData/"+inquery+"/preprocess_"+inquery+"_hashtag_tweets.csv"]
-        print('Starts function preprocess_Tweets\n')
+        print('start function preprocess_Tweets\n')
         preprocess_Tweets(file_tweets[0],file_tweets[1])
-        print("Successed preprocessing tweets")
-    else:
-        print("No such directory")
         
 
 def run_divide_dataset():
@@ -174,13 +159,13 @@ def run_divide_dataset():
     divide_dataset(file_divid_dataset[0],file_divid_dataset[1])
 
 def runPreprocess(inp,inquery):
+    
     switcher={1:run_preprocess_dataset,
               2:run_preprocess_Tweets(inquery),
               3:run_divide_dataset}
-        
+    
     func=switcher.get(inp,lambda:'invaild function\n')
-
+    
 
 #runPreprocess(3,' ')
-#runPreprocess(2,"gameofthrones") 
-#runPreprocess(2,"ml")
+#runPreprocess(2,"#DonaldTrump") 

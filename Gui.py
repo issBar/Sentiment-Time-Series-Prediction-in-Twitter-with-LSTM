@@ -159,7 +159,6 @@ class StartPage(tk.Frame):
         #verification label 
         self.verified_label=tk.Label(top_frame,bg='white')
         if flag==True:
-            print("True")
             self.verified_label.config(text="Verified",fg='green')
         else:
             self.verified_label.config(text="Autenticate",fg='red')
@@ -221,7 +220,8 @@ class StartPage(tk.Frame):
         option_menu_time.configure(highlightbackground=button_background_color,width = 6,height=1,relief=tk.GROOVE,bg=button_background_color,foreground=login_toplabel_color, activebackground = "#33B5E5")
         option_menu_time.pack(side=tk.RIGHT)
         self.variable.trace("w",self.get_duration)
-        duration=(self.variable.get().split('Day')[0])
+       
+        
         #percentage FRAME
         self.percentageFrame=tk.Frame(self.centerFrame,bg=button_background_color)
         self.percentageFrame.pack(anchor='nw',pady=10)       
@@ -237,7 +237,7 @@ class StartPage(tk.Frame):
         
         #run button
         self.run_img=tk.PhotoImage(file='./b_gui/run2.png')
-        self.run_button=tk.Button(self.runFrame,text="Search",fg=text_color,font=controller.text_font,compound="right",command=lambda: self.check_input(parent,self.textbox_h,duration),bg=button_background_color)
+        self.run_button=tk.Button(self.runFrame,text="Search",fg=text_color,font=controller.text_font,compound="right",command=lambda: self.check_input(parent,self.textbox_h),bg=button_background_color)
         self.run_button.config(image=self.run_img,relief=tk.FLAT)
         #if Authentication failed
         if flag==False:
@@ -267,13 +267,12 @@ class StartPage(tk.Frame):
         self.lstmButton.pack(side=tk.BOTTOM,pady=10)
         
         
-        
-        
-        
-        
         self.configure(background='white')
+        
+        
     #~~~~~CLASS FUNCTIONS~~~~~
 
+    
     def user_error_dialog(self):
          messagebox.showinfo("Please authentication with twitter developer account.")    
         
@@ -297,8 +296,9 @@ class StartPage(tk.Frame):
             
             
             
-    def check_input(self,parent,textbox_h,duration):
-      
+    def check_input(self,parent,textbox_h):
+        duration=self.variable.get().split('Day')[0]
+        print("duration=",duration)
         if re.match("^[A-Za-z0-9_-]*$", textbox_h.get()):
             self.controller.show_status_frame(parent,StatusPage,textbox_h,duration) 
         else:
@@ -486,10 +486,10 @@ class StatusPage(tk.Frame):
         self.fetching_tweets=tk.PhotoImage(file='./b_gui/fetching_tweets.png')
         self.preprocessing_tweets=tk.PhotoImage(file='./b_gui/preprocessing_tweets.png')
         self.sentiment_analysis=tk.PhotoImage(file='./b_gui/sentiment_analysis.png')
-        self.lstm_prediction=tk.PhotoImage(file='./b_gui/lstm_prediction.png')
+        #self.lstm_prediction=tk.PhotoImage(file='./b_gui/lstm_prediction.png')
         
         #Info frame with labels
-        texts_for_labels=[self.fetching_tweets,self.preprocessing_tweets,self.sentiment_analysis,self.lstm_prediction]
+        texts_for_labels=[self.fetching_tweets,self.preprocessing_tweets,self.sentiment_analysis]
         self.checkboxes={}
         self.checkbox_fetchs_tweets={}
         self.update_information={}
@@ -563,6 +563,8 @@ class StatusPage(tk.Frame):
     # MAIN RUN OF ALL PROCESSES #
     def run(self,text,duration,flag,master):
         duration=int(duration)
+        print("\nduration=",duration)
+        
         try:
             #lock.acquire()
         
@@ -575,7 +577,7 @@ class StatusPage(tk.Frame):
             self.var.set('Time left: Processing...')
 
             #loop for fetching tweet by hours
-            for i in range(1): ######CHANGE TO HOURS WHEN DONE ######### 
+            for i in range(hours): ######CHANGE TO HOURS WHEN DONE ######### 
                 print("Fetch number : ",(i+1),'/',hours)
                 size_of_hashtag=TweetCon.runTweetCon(text,0)
                 if size_of_hashtag==0:
@@ -585,7 +587,7 @@ class StatusPage(tk.Frame):
                     
                 self.progressBar['value']+=10     
                 self.var.set('Time left: {} Hours'.format(hours-i))
-                time.sleep(1)#######CHANGE TIME SLEEP TO =60*60 #########
+                time.sleep(60*60)#######CHANGE TIME SLEEP TO =60*60 #########
                 
             self.checkbox_fetchs_tweets[self.fetching_tweets].select()
             self.size_of_fetching_tweets=util. get_size_of_file("./csvData/"+text+"/"+text+"_hashtag_tweets.csv")
@@ -880,7 +882,7 @@ class LstmPage(tk.Frame):
         self.checkb_smooth.config(highlightbackground=button_background_color)
         
         #percentage FRAME
-        self.percentage_image=tk.PhotoImage(file='./b_gui/percentage.png')
+        self.percentage_image=tk.PhotoImage(file='./b_gui/percentage_2.png')
 
         self.percentageFrame=tk.Frame(self.centerFrame,bg=button_background_color)
         self.percentageFrame.pack(anchor='nw',pady=20)       
@@ -925,9 +927,8 @@ class LstmPage(tk.Frame):
         return self.scale.get()
     
     def check_if_ready(self,thread):
-        print("check thread\n")
         if thread.is_alive():
-            self.after(300,self.check_if_ready,thread)
+            self.after(600,self.check_if_ready,thread)
         else:
             print("lstm thread done\n")
             self.controller.show_plots_frame(self.parent,PlotPage,self.text,self.duration,self.dt_dic,self.pred,self.size_of_prediction)
@@ -945,7 +946,7 @@ class LstmPage(tk.Frame):
         submit_thread_ = threading.Thread(target=lambda :self.runLstm(text,smooth_flag,percentage))
         #submit_thread.daemon = True
         submit_thread_.start()
-        self.after(300,self.check_if_ready,submit_thread_)
+        self.after(600,self.check_if_ready,submit_thread_)
         
         
     def runLstm(self,text,smooth_flag,percentage):
