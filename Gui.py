@@ -7,7 +7,7 @@ Created on Tue May 21 01:07:19 2019
 """
 
 
-frame_size="640x520"
+frame_size="640x550"
 backround_color='white'
 text_color='#3d3d3d'
 login_toplabel_color='#3898DB'
@@ -17,6 +17,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pandas as pd
+from pathlib import Path
 import TweetCon 
 import NLP
 import preprocess 
@@ -28,6 +29,8 @@ import threading
 from PIL import Image, ImageTk
 import time
 import re
+
+
 #matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
@@ -103,8 +106,8 @@ class SampleApp(tk.Tk):
         frame.tkraise()
     
     #raising StatusPage     
-    def show_status_frame(self,parent,status_class,text,duration,scale):
-        st_page=status_class(parent,self,text,duration,scale)
+    def show_status_frame(self,parent,status_class,text,duration):
+        st_page=status_class(parent,self,text,duration)
         st_page.grid(row=0, column=0, sticky="nsew")
         st_page.tkraise()
         
@@ -114,6 +117,12 @@ class SampleApp(tk.Tk):
         st_page.grid(row=0, column=0, sticky="nsew")
         st_page.tkraise()
 
+    #rasing LstmPage
+    def show_lstm_frame(self,parent,LstmPage_class,text,duration):
+        lstm_page=LstmPage_class(parent,self,text,duration)
+        lstm_page.grid(row=0, column=0, sticky="nsew")
+        lstm_page.tkraise()
+        
     #README
     def load_README(self):
         #load new frame contains txt file
@@ -129,6 +138,7 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         self.controller = controller
+        self.parent=parent
         controller.geometry(frame_size)
         controller.pack_propagate(0)
         #topFrame
@@ -215,14 +225,7 @@ class StartPage(tk.Frame):
         #percentage FRAME
         self.percentageFrame=tk.Frame(self.centerFrame,bg=button_background_color)
         self.percentageFrame.pack(anchor='nw',pady=10)       
-        #label percentage
-        label_percentage=tk.Label(self.percentageFrame,image=self.percentage,font=controller.text_font,fg=text_color,bg=button_background_color)
-        label_percentage.pack(side=tk.LEFT) 
-        #Scaler for precentage bar
-        self.s_var=tk.DoubleVar()
-        self.scale=tk.Scale(self.percentageFrame,variable=self.s_var,orient=tk.HORIZONTAL,from_=5,to=20,tickinterval=5,bg=button_background_color,fg=text_color,troughcolor=login_toplabel_color)
-        self.scale.pack(side=tk.LEFT)
-        self.scale.config(highlightbackground=button_background_color)
+  
         
         
         # ~ BOTTOM FRAME ~
@@ -249,20 +252,55 @@ class StartPage(tk.Frame):
         separator.pack(side="top",fill='both')
         
         
+        #LstmFrame
+        self.lstmFrame=tk.Frame(self)
+        self.lstmFrame.pack(side=tk.BOTTOM,fill='both')
+        
+        #lstm label
+        self.or_image=tk.PhotoImage(file='./b_gui/or_label.png')
+        self.lstmLabel=tk.Label(self.lstmFrame,image=self.or_image)
+        self.lstmLabel.pack(side=tk.TOP)
+    
+        #Lstm button
+        self.run_lstm_image=tk.PhotoImage(file='./b_gui/run_lstm_only.png')
+        self.lstmButton=tk.Button(self.lstmFrame,image=self.run_lstm_image,command=lambda:self.check_input_lstm(),relief=tk.FLAT)
+        self.lstmButton.pack(side=tk.BOTTOM,pady=10)
+        
+        
+        
+        
+        
+        
         self.configure(background='white')
     #~~~~~CLASS FUNCTIONS~~~~~
 
     def user_error_dialog(self):
          messagebox.showinfo("Please authentication with twitter developer account.")    
         
-    def get_user_percentage(self):
-        get_Scale=self.s_var.get()/100
-        return get_Scale
+  
     
+    
+    def check_input_lstm(self):
+        text=self.textbox_h.get()
+        file_to_read="./csvData/"+text+"/predict_"+text+"_hashtag_tweets.csv"
+        file=Path(file_to_read)
+        
+        if re.match("^[A-Za-z0-9_-]*$", text):
+                if file.exists():
+                    self.controller.show_lstm_frame(self.parent,LstmPage,text,0)
+                else:
+                    messagebox.showinfo("Information","csv file not exist") 
+                    
+        else:
+            messagebox.showinfo("Information","can only accept a-z ,A-Z,0-9")   
+            
+            
+            
+            
     def check_input(self,parent,textbox_h,duration):
-        scale=self.get_user_percentage()
+      
         if re.match("^[A-Za-z0-9_-]*$", textbox_h.get()):
-            self.controller.show_status_frame(parent,StatusPage,textbox_h,duration,scale) 
+            self.controller.show_status_frame(parent,StatusPage,textbox_h,duration) 
         else:
             messagebox.showinfo("Information","can only accept a-z ,A-Z,0-9")        
        
@@ -405,12 +443,13 @@ class TwitterLogin(tk.Frame):
 ##### StatusPage #####
 class StatusPage(tk.Frame):
     
-    def __init__(self,parent,controller,textbox_h,duration,scale):
+    def __init__(self,parent,controller,textbox_h,duration):
         tk.Frame.__init__(self,parent)
         self.controller = controller
         self.parent=parent    
         self.score_label=0
-        self.percentage=scale
+      
+
 
         #status frame
         self.statusFrame=tk.Frame(self,bg='white')
@@ -479,6 +518,11 @@ class StatusPage(tk.Frame):
         #start thread 
         #self.run(self.input_,duration,True,controller)
         self.start_submit_thread(self.input_,duration,True,controller)
+           
+     
+        
+       
+
     
 ####### CLASS FUNCTIONS #######
 
@@ -495,6 +539,14 @@ class StatusPage(tk.Frame):
             print("Error loading file")
             return 0
     
+    def check_if_ready(self,thread,text,duration):
+        if thread.is_alive():
+            self.after(1000,self.check_if_ready,thread,text,duration)
+        else:
+            print("lstm thread done\n")
+            self.controller.show_lstm_frame(self.parent,LstmPage,text,duration)
+            
+    
     #Starting theding to run all the PROCESSES
     def start_submit_thread(self,TEXT,duration,flag,master):
         global submit_thread
@@ -503,6 +555,10 @@ class StatusPage(tk.Frame):
         submit_thread = threading.Thread(target=lambda :self.run(TEXT,duration,flag,master))
         submit_thread.daemon = True
         submit_thread.start()
+        self.after(1000,self.check_if_ready,submit_thread,TEXT,int(duration))
+        
+     
+       
         
     # MAIN RUN OF ALL PROCESSES #
     def run(self,text,duration,flag,master):
@@ -544,6 +600,7 @@ class StatusPage(tk.Frame):
             self.checkbox_fetchs_tweets[self.preprocessing_tweets].select()
             self.size_of_preprocessing=util. get_size_of_file("./csvData/"+text+"/preprocess_"+text+"_hashtag_tweets.csv")
             self.update_information[self.preprocessing_tweets].set(str(self.size_of_preprocessing)+" tweets preprocess")
+
             time.sleep(3)
                 
             #run npl 
@@ -555,8 +612,9 @@ class StatusPage(tk.Frame):
             #getting ML score
             self.score_label=self.load_score_of_ml()
             self.update_information[self.sentiment_analysis].set(self.score_label+"% accuracy")
-            time.sleep(3)
-
+            
+                
+            '''
             #timeSeries
             timeSeries.run_time_series(text)
                 
@@ -569,7 +627,7 @@ class StatusPage(tk.Frame):
             #starting PlotPage
             self.controller.show_plots_frame(self.parent,PlotPage,text,duration,dt_dic,pred,size_of_prediction)
             #result_page(text,date_time_dic)
-           
+            '''
                 
            # lock.release()
         
@@ -590,7 +648,8 @@ class PlotPage(tk.Frame):
         self.topFrame=tk.Frame(self)
         self.topFrame.pack(side=tk.TOP,fill='both')
         #back button
-        self.back_button=tk.Button(self.topFrame,fg=text_color,text="Back",command=lambda:self.controller.show_frame("StartPage"),bg=button_background_color)
+
+        self.back_button=tk.Button(self.topFrame,fg=text_color,text="Back",command=lambda:self.controller.show_lstm_frame(parent,LstmPage,text,duration),bg=button_background_color)
         self.back_button.configure(width = 10, activebackground = "#33B5E5", relief = tk.GROOVE)
         self.back_button.pack(padx=15,pady=5,anchor="nw")
 
@@ -772,9 +831,157 @@ class PlotPage(tk.Frame):
         return plots_labels
      
 
+
+##### CLASS LstmPage ######
+class LstmPage(tk.Frame):   
+    def __init__(self,parent,controller,text,duration):
+        tk.Frame.__init__(self,parent)
+        self.text=text
+        self.duration=duration
+        self.controller=controller
+        self.parent=parent
+        
+        self.dt_dic=[]
+        self.pred=[]
+        self.size_of_prediction=0
+        
+    
+      
+        #top frame
+        self.topFrame=tk.Frame(self)
+        self.topFrame.pack(side=tk.TOP,fill='both')
+        #back button
+        self.back_button=tk.Button(self.topFrame,fg=text_color,text="Back",command=lambda:self.controller.show_frame("StartPage"),bg=button_background_color)
+        self.back_button.configure(width = 10, activebackground = "#33B5E5", relief = tk.GROOVE)
+        self.back_button.pack(padx=15,pady=5,anchor="nw")
+        
+        #lstm label
+        self.lstm_title_image=tk.PhotoImage(file='./b_gui/lstm_prediction1.png')
+        self.lstmLabel=tk.Label(self.topFrame,image=self.lstm_title_image)
+        self.lstmLabel.pack(side=tk.TOP,pady=10,anchor="center")
+
+        #center Frame
+        self.centerFrame=tk.Frame(self,bg=button_background_color)
+        self.centerFrame.pack(anchor='center',fill='both')
+        
      
+        
+        #smoothFrame
+        self.smoothFrame=tk.Frame(self.centerFrame,bg=button_background_color)
+        self.smoothFrame.pack(anchor='nw',pady=20)
+        self.smooth_image=tk.PhotoImage(file='./b_gui/stationary_data.png')
+        #smooth label
+        self.smoothLabel=tk.Label(self.smoothFrame,image=self.smooth_image,bg=button_background_color)
+        self.smoothLabel.pack(side=tk.LEFT,padx=5)
+        #checkButton
+        self.smooth_var=tk.IntVar()
+        self.checkb_smooth=tk.Checkbutton(self.smoothFrame,variable=self.smooth_var,bg=button_background_color)
+        self.checkb_smooth.pack(side=tk.LEFT,padx=2)
+        self.checkb_smooth.config(highlightbackground=button_background_color)
+        
+        #percentage FRAME
+        self.percentage_image=tk.PhotoImage(file='./b_gui/percentage.png')
+
+        self.percentageFrame=tk.Frame(self.centerFrame,bg=button_background_color)
+        self.percentageFrame.pack(anchor='nw',pady=20)       
+        #label percentage
+        self.label_percentage=tk.Label(self.percentageFrame,image=self.percentage_image,font=controller.text_font,fg=text_color,bg=button_background_color)
+        #self.label_percentage.config(image=self.percentage_image)
+        self.label_percentage.pack(side=tk.LEFT)
+        
+        #Scaler for precentage bar
+        self.s_var=tk.DoubleVar()
+        self.scale=tk.Scale(self.percentageFrame,variable=self.s_var,orient=tk.HORIZONTAL,from_=5,to=20,tickinterval=5,bg=button_background_color,fg=text_color,troughcolor=login_toplabel_color)
+        self.scale.pack(side=tk.LEFT)
+        self.scale.config(highlightbackground=button_background_color)
+        
+        #progress bar
+        self.progressBar =ttk.Progressbar(self.centerFrame,orient="horizontal",style="red.Horizontal.TProgressbar",length=600,  mode="determinate")
+        self.progressBar.pack(side=tk.TOP)
+
+        #bottomFrame
+        self.bottomFrame=tk.Frame(self,bg='white')
+        self.bottomFrame.pack(side=tk.BOTTOM,fill='both')
+        
+      
+
+        #run button
+        self.run_img=tk.PhotoImage(file='./b_gui/start.png')
+        self.runButton=tk.Button(self.bottomFrame,bg='white',image=self.run_img,command=lambda:self.submit_thread(),relief=tk.FLAT)
+        self.runButton.pack(side=tk.TOP,anchor="center",pady=50,padx=30)
+        self.runButton.config(state="normal")
+        
+    ####### CLASS FUNCTIONS #######    
+        
+    def get_checkb_smooth(self):
+       var=self.smooth_var.get()
+
+       if(var==0):
+           return False
+       elif(var==1):
+           return True
+   
+    def get_percentage(self):
+        return self.scale.get()
+    
+    def check_if_ready(self,thread):
+        print("check thread\n")
+        if thread.is_alive():
+            self.after(300,self.check_if_ready,thread)
+        else:
+            print("lstm thread done\n")
+            self.controller.show_plots_frame(self.parent,PlotPage,self.text,self.duration,self.dt_dic,self.pred,self.size_of_prediction)
             
-          
+        
+    def submit_thread(self):
+        print("start lstm thread")
+        self.runButton.config(state="disabled")
+        global submit_thread
+        global lock
+        lock=threading.Lock()
+        smooth_flag=self.get_checkb_smooth()
+        percentage=self.get_percentage()
+        text=self.text
+        submit_thread_ = threading.Thread(target=lambda :self.runLstm(text,smooth_flag,percentage))
+        #submit_thread.daemon = True
+        submit_thread_.start()
+        self.after(300,self.check_if_ready,submit_thread_)
+        
+        
+    def runLstm(self,text,smooth_flag,percentage):
+        
+        try:
+            
+            self.progressBar['maximum']=100
+        
+            percentage=percentage/100
+            #timeSeries
+            print("smooth_flag==",smooth_flag)
+        
+            timeSeries.run_time_series(text,smooth_flag)
+            time.sleep(3)
+            lock.acquire()
+            #LSTM
+            #returns date and time dictionary(dt_dic),predictions(pred) and size of prediction
+            dt_dic,pred,size_of_prediction=LSTM.main_pred(text,percentage,self.progressBar)
+            lock.release()
+            
+            self.dt_dic=dt_dic
+            self.pred=pred
+            self.size_of_prediction=size_of_prediction
+                
+            #starting PlotPage
+            #self.controller.show_plots_frame(self.parent,PlotPage,self.text,self.duration,dt_dic,pred,size_of_prediction)
+            return
+        except:
+            print("Error on Lstm !\n")
+            self.progressBar['value']=0
+            messagebox.showerror("error","Error in lstm ,please try again")
+
+            return
+        
+        
+    
                             
 
 if __name__ == "__main__":
