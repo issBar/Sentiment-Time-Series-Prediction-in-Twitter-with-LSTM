@@ -55,8 +55,33 @@ def smoothing_trends(inquery):
     except FileNotFoundError:
         print('file not exist!\n')
         
-   
+
+def handling_missing_values2smooth(inquery):
     
+    file_to_read="./csvData/"+inquery+"/predict_"+inquery+"_hashtag_tweets.csv"
+    df=pd.read_csv(file_to_read)
+    df['Date and time']=pd.to_datetime(df['Date and time'])
+    size_of_file=df.shape[0]
+    
+    min_=df['average'][0]
+    max_=df['average'][0]
+    for i in range(1,size_of_file):
+        
+        if df['average'][i]<min_:
+            min_=df['average'][i]
+        if df['average'][i]>max_:
+            max_=df['average'][i]
+   
+    print("max=",max_)
+    print("\nmin=",min_)
+    print("\navg(min,max)=",(max_+min_)/2)
+    df.index=pd.to_datetime(df.index) #convert to date and time
+    df=df.set_index('Date and time').resample('H').mean()#.fillna((min_+max_)/2)
+    df['average']=df['average'].where(df['average'].notnull(),other=(min_+max_)/2)        
+    array_of_data=df.iloc[:]
+    pd.DataFrame(array_of_data).to_csv(file_to_read)
+    print("handling_missing_values smooth sucsees\n")
+
     
 def handling_missing_values(inquery):
     #Filling in missing hours of time-series and setting default value as average of both previous and next value
@@ -95,7 +120,7 @@ def min_date_to_min_dt(min_date,min_hour):
     return date_and_time
 
 
-def run_time_series(inquery):
+def run_time_series(inquery,smooth_flag):
     
     
     file_to_read="./csvData/"+inquery+"/"+inquery+"_hashtag_tweets_pred.csv"
@@ -176,8 +201,13 @@ def run_time_series(inquery):
     #save to  csv file 
     create_pred_file(date_time_dic,inquery)
     
-    handling_missing_values(inquery)
-  
-    smoothing_trends(inquery)
+    if smooth_flag==True:
+        smoothing_trends(inquery)
+        handling_missing_values2smooth(inquery)
+    else:
+        handling_missing_values(inquery)
 
-#run_time_series("ml")
+        
+
+
+#run_time_series("Trump",True)
