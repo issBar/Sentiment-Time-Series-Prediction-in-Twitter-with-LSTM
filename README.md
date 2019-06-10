@@ -6,31 +6,25 @@ Note: It is recommended to use Anaconda distribution of Python.
 ## Requirements 
 ```
 Tweepy : pip install tweepy
-Library for twitter API.
 ```
 ```
-### Pandas : pip install pandas
-Library for analyzing data from CSV files. We used Pandas for opening and updating CSV files, filtering data, data cleaning and many more.
+Pandas : pip install pandas
+
 ```
 ```
-•	Scikit-learn
-Great library for data analysis, We have used to in order to implement SVC, preprocessing, feature extraction ,  cross validation and MinMaxScaler for the LSTM model.
+Scikit-learn : pip install scikit-learn
 ```
 ```
-•	NLTK
-NLTK is a leading platform to work with human language data. We used NLTK in order to implement word tokenizer.
+NLTK : pip install nltk
 ```
 ```
-•	Keras
-Time series analysis based on LSTM can capture the complexity between time steps and predicted value. There are several deep learning methods, TensorFlow, Keras, PyTorch, Theano and more.
-The project was written using Keras since it provides great flexibility and functionality. Keras contains numerous implementations of commonly used neural-network building blocks such as layers, objectives, activation functions, optimizers, and a host of tools to make working with data easier. We used Keras for implementing our LSTM model.
+Keras : pip install Keras
 ```
 ```
-•	Matplotlib
-Plotting library for python, it provides a MATLAB-like interface and used to plot graphs. It also provides easy use with GUI toolkits like Tkinter.
+Matplotlib : pip install matplotlib
 ```
 ```
-•	Sqlite3
+Sqlite3 : pip install quick-sqlite
 Library that is used to create local database that doesn’t require a separate server and allows accessing the database using SQL queries.
 ```
 
