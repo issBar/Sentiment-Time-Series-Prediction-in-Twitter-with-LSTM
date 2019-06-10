@@ -5,7 +5,9 @@ Note: It is recommended to use Anaconda distribution of Python.
 
 # Requirements #
 •	Tweepy
+
 Python Library that is used to fetch tweets from twitter. Twitter Developer account is a must. Therefore, user must provide his personal developer account. 
+
 •	Pandas
 Library for analyzing data from CSV files. We used Pandas for opening and updating CSV files, filtering data, data cleaning and many more.
 •	Scikit-learn
@@ -23,15 +25,15 @@ Library that is used to create local database that doesn’t require a separate 
 
 # Usage #
 
-# 1. Run GUI -> Authenticate using twitter developer account.
+# 1. Run GUI -> Authenticate using twitter developer account. #
 
-# 2. Insert a Hashtag that you want to predict 
+# 2. Insert a Hashtag that you want to predict #
 Note : It is recommended to use hot topics.
 
-# 3. Set duration for fetching tweets
+# 3. Set duration for fetching tweets #
 Note : The more data, the better prediction
 
-# 4. Select Run -> 
+# 4. Select Run -> #
    • Fetching Tweets 
    Produce csv : yourInput_hashtag_tweets.csv
    • Preprocessing
@@ -42,10 +44,10 @@ Note : The more data, the better prediction
    Builds a ML using linear SVM algorithm
    Produce csv : yourInput_hashtag_tweets_pred
    
-# 5. Select percentage for prediction : 
+# 5. Select percentage for prediction : #
    Example : 10% Out of 24 hours will be 2.4 hours -> 2 hours prediction.
    
-# 6. Select Start ->
+# 6. Select Start -> #
    • Time-Series
    Creating stationary data by smoothing trends. replacing NaN values with Moving average algorithm 
    Produce csv : predict_yourInput_hashtag_tweets.csv
