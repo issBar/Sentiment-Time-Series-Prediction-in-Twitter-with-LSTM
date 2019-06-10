@@ -41,7 +41,7 @@ Numpy : pip install numpy
 ### 2. Insert a Hashtag that you want to predict 
        Note : It is recommended to use hot topics.
        
-       If you want to run LSTM only please Insert Hashtag and select 'Run LSTM Only ' -> And move to step #5
+       If you want to run **LSTM only** please Insert Hashtag and select 'Run LSTM Only ' -> And skip to step #5
        *NOTE : You must have the following path : 'predict_yourInput_hashtag_tweets.csv'
        
 
