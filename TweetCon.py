@@ -6,19 +6,9 @@ Created on Thu Dec 13 18:58:22 2018
 @author: yaron
 """
 from __future__ import print_function
-import codecs
-import sys
-import argparse
 import csv
-import re 
 import tweepy 
 from tweepy import OAuthHandler 
-from textblob import TextBlob 
-import time
-from sklearn.cross_validation import train_test_split
-#import got
-from tweepy import Stream
-import pandas as pd
 import os.path
 import utility as uti
 import DataBase
@@ -29,10 +19,7 @@ class TwitterClient(object):
 
     
     def __init__(self,consumer_key,consumer_secret,access_token,access_token_secret):
-        #consumer_key = 'i5UW3ELVfZMBo7v9QfJ5bBK4q'
-        #consumer_secret = 'PzNZLrr8zdvEi3MkHv43mkA6GmgwP8g6J12eDAsfU1HiYpGtZ7'
-        #access_token = '469641234-wAc1uMHBENJwI5S0SUFdED63dMlWwTTTdOVHIrOL'
-        #access_token_secret = '3DSGRzcuFEnRIPzIQaRn17e2xXBARKh1fTlis1H1tGHz5'
+
         try: 
             # create OAuthHandler object 
             self.auth = OAuthHandler(consumer_key, consumer_secret) 
@@ -43,7 +30,7 @@ class TwitterClient(object):
   
         except: 
             print("Error: Authentication Failed") 
-            
+        
             
     def getTweets(self,query,count=10):
          tweets = [] 
@@ -108,15 +95,16 @@ def createCsv(inquery,tweets):
                          
 def runTweetCon(inquery,runtime):
     file_path=uti.create_new_folder_by_hashtag(inquery)
-    
     consumer_key,consumer_secret,access_token,access_token_secret=DataBase.get_authentication()   
     all_tweets=[]                       
     api=TwitterClient(consumer_key,consumer_secret,access_token,access_token_secret)
     tweets = api.getTweets(query = '#'+inquery+' -filter:retweets',count =100)
     all_tweets=tweets
-
-    if(len(all_tweets)>0):        
+    
+    if len(all_tweets)>0:
         createCsv(inquery,all_tweets)
+    
+    
     
     return len(all_tweets)
           

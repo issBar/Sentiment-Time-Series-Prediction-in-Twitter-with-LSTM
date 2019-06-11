@@ -11,15 +11,12 @@ from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.callbacks import EarlyStopping
-from keras.layers import Dropout
 from keras.layers import LSTM
 import datetime
 import csv
 import os
 import time
-from matplotlib.dates import DateFormatter
 import pylab as pl
-import matplotlib.dates as mdates
 from keras import backend as K
 
 
@@ -45,7 +42,7 @@ def save_plot__of_predictions(input_,size_of_prediction):
     original_x=df_o.index#[end_i_train:]
     original_y=df_o['average']#.loc[end_i_train:]
     
-    print("Real Value : ",original_y, "Predicted Value : ",y_predictions)
+    #print("Real Value : ",original_y, "Predicted Value : ",y_predictions)
     
     f=plt.figure()
     plt.figure(figsize=(6 ,4))
@@ -53,6 +50,8 @@ def save_plot__of_predictions(input_,size_of_prediction):
     #plt.plot(df.index,df['average'])
     plt.plot(original_x,original_y,color='blue')
     plt.plot(x_time,y_predictions ,color='orange')
+    plt.legend(['Real', 'Predicted'], loc='upper right')
+
     
     plt.suptitle('Prediction graph for #'+input_,fontsize=12)
                  
@@ -65,14 +64,7 @@ def save_plot__of_predictions(input_,size_of_prediction):
     except FileNotFoundError:
         print('file not exist!\n')
             
-            
-    '''
-    plt.title("#"+input_+" prediction graph ")#for date : +key)
-    plt.gcf().autofmt_xdate(bottom=0.3, rotation=50, ha='right', which=None)
-    plt.xlabel('Time-Series',fontsize=16)
-    plt.ylabel('Predict',fontsize=16)
-    plt.show()
-    '''
+
 def readFile(inquery):
     file_to_read="./csvData/"+inquery+"/predict_"+inquery+"_hashtag_tweets.csv"
     return file_to_read
@@ -96,18 +88,17 @@ def main_pred(input_,percentage,progressBar):
     new_df=pd.read_csv(new_file).set_index('Date and time')
     new_size_of_file=new_df.shape[0]
     last_date=new_size_of_file-1
-    print(df.index[last_date])
+    #print(df.index[last_date])
     #Splitting date and time
     date_and_time=df.index[last_date]
     date_and_time=date_and_time.split(' ')
     date=date_and_time[0].split('-')
     time_=date_and_time[1].split(':')
-    print('last date:',date)
+    #print('last date:',date)
     
     #set o' clocks
     dt_dict={}
     date=datetime.datetime(int(date[0]),int(date[1]),int(date[2]),int(time_[0]),0,0)
-    time_pred_dic=[]
     predicted_value=[]
     progressBar['maximum']=10*size_of_prediction
     for i in range(size_of_prediction):
@@ -117,7 +108,7 @@ def main_pred(input_,percentage,progressBar):
         save_to_file = open(new_file, 'a',encoding="utf-8")
         writer=csv.DictWriter(save_to_file,fieldnames=fields_name)
         date+=datetime.timedelta(hours=1)
-        print(' new Date and time:',date)
+        #print(' new Date and time:',date)
         writer.writerow({'Date and time':date, 'count_pos':0,'count_neg':0,'average':predicted_value[0]})
         save_to_file.close()
         progressBar['value']+=10
@@ -125,12 +116,12 @@ def main_pred(input_,percentage,progressBar):
     #saving plots    
     save_plot__of_predictions(input_,size_of_prediction)
     
-    print("dt_dict==",dt_dict)
+    #print("dt_dict==",dt_dict)
     return dt_dict,predicted_value,size_of_prediction
 
 def run_LSTM(input_,round_index,size_of_prediction):
     #taking real file
-    print("run_lstm\n")
+    #print("run_lstm\n")
     real_file=readFile(input_)
     df_o=pd.read_csv(real_file)
     size_of_o_file=df_o.shape[0]
@@ -143,11 +134,10 @@ def run_LSTM(input_,round_index,size_of_prediction):
     size_of_file=df.shape[0]
     
     #Column we want to predict
-    target_name=['average']
+    
 
     #MinMax Scaler
     scaler=MinMaxScaler(feature_range=(-1,1))
-    #series=scaler.fit_transform(df.values)
     series=pd.DataFrame(df.values)
 
     #Shifting the series for predicting values
@@ -173,22 +163,22 @@ def run_LSTM(input_,round_index,size_of_prediction):
         Y.append(test.iloc[i,].values)
 
 
-    #X=np.array(X)   
+      
     X=scaler.fit_transform(X)
     test=scaler.fit_transform(test)
 
-    n_batch=len(X)
+    
     # reshape from [samples, timesteps] into [samples, timesteps, features]
     n_features = 1
     X = X.reshape((X.shape[0], X.shape[1], n_features))
-    print('x shape=',X.shape[0])
+    #print('x shape=',X.shape[0])
     model = Sequential()
     model.add(LSTM(64,activation='tanh',input_shape=(n_steps, n_features),return_sequences=False,bias_initializer='ones'))
     model.add(Dense(1))
     model.summary()
     model.compile(optimizer='adam', loss='mse')
-    early_stop = EarlyStopping(monitor='loss', patience=2, verbose=2)
-    history=model.fit(X, test, epochs=100,validation_split=0.1, shuffle=False,callbacks=[early_stop],verbose=1)
+    early_stop = EarlyStopping(monitor='loss', patience=5, verbose=2)
+    history=model.fit(X, test, epochs=100,validation_split=0.2, shuffle=False,callbacks=[early_stop],verbose=1)
 
 
     last_batch_index=len(Y)-n_steps
@@ -260,8 +250,6 @@ def run_LSTM(input_,round_index,size_of_prediction):
         plt.show()
 
 
-
-
     #Validation vs training set for viewing loss
     plt.ylim([0,4])
     plt.plot(history.history['loss'])
@@ -281,14 +269,7 @@ def run_LSTM(input_,round_index,size_of_prediction):
         plt.show()
     except FileNotFoundError:
         print('file not exist!\n')
-    #print(dt_dic)
-    #import gc
-    
-   # gc.collect
+
     K.clear_session()
     return dt_dic,y_pred[0]
    
-    
-#main_pred('Trump',0.2)
-#main_pred('gameofthrones')  
-#main_pred('iphone',0.1)

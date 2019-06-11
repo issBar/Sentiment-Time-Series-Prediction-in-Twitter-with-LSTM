@@ -247,12 +247,12 @@ class StartPage(tk.Frame):
         
         
         #LstmFrame
-        self.lstmFrame=tk.Frame(self)
+        self.lstmFrame=tk.Frame(self,bg='white')
         self.lstmFrame.pack(side=tk.BOTTOM,fill='both')
         
         #lstm label
         self.or_image=tk.PhotoImage(file='./b_gui/or_label.png')
-        self.lstmLabel=tk.Label(self.lstmFrame,image=self.or_image)
+        self.lstmLabel=tk.Label(self.lstmFrame,image=self.or_image,highlightthickness=0,borderwidth=0)
         self.lstmLabel.pack(side=tk.TOP)
     
         #Lstm button
@@ -567,7 +567,7 @@ class StatusPage(tk.Frame):
             self.var.set('Time left: Processing...')
 
             #loop for fetching tweet by hours
-            for i in range(1): 
+            for i in range(hours): 
                 print("Fetch number : ",(i+1),'/',hours)
                 size_of_hashtag=TweetCon.runTweetCon(text,0)
                 if size_of_hashtag==0:
@@ -577,7 +577,7 @@ class StatusPage(tk.Frame):
                     
                 self.progressBar['value']+=10     
                 self.var.set('Time left: {} Hours'.format(hours-i))
-                time.sleep(1)
+                time.sleep(60*60)
                 
             self.checkbox_fetchs_tweets[self.fetching_tweets].select()
             self.size_of_fetching_tweets=util. get_size_of_file("./csvData/"+text+"/"+text+"_hashtag_tweets.csv")
@@ -836,7 +836,7 @@ class LstmPage(tk.Frame):
         
         #lstm label
         self.lstm_title_image=tk.PhotoImage(file='./b_gui/lstm_prediction1.png')
-        self.lstmLabel=tk.Label(self.topFrame,image=self.lstm_title_image)
+        self.lstmLabel=tk.Label(self.topFrame,image=self.lstm_title_image,borderwidth=0,highlightthickness=0)
         self.lstmLabel.pack(side=tk.TOP,pady=10,anchor="center")
 
         #center Frame
