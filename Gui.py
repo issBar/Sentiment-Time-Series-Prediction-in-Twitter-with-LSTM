@@ -11,11 +11,10 @@ frame_size="640x550"
 backround_color='white'
 text_color='#3d3d3d'
 login_toplabel_color='#3898DB'
-button_background_color='#E7EDF1' #'#AECDE8' #'#E7EDF7' #real 
+button_background_color='#E7EDF1'
 
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import pandas as pd
 from pathlib import Path
 import TweetCon 
@@ -26,14 +25,9 @@ import LSTM
 import utility as util
 from importlib import reload  # Python 3.4+ only.
 import threading
-from PIL import Image, ImageTk
 import time
 import re
 
-
-#matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
-from matplotlib.figure import Figure
 import tweepy
 import DataBase
 
@@ -402,11 +396,7 @@ class TwitterLogin(tk.Frame):
         consumer_secret=entries[1].get()
         access_token=entries[2].get()
         access_token_secret=entries[3].get()
-        
-        #consumer_key = 'i5UW3ELVfZMBo7v9QfJ5bBK4q'
-        #consumer_secret = 'PzNZLrr8zdvEi3MkHv43mkA6GmgwP8g6J12eDAsfU1HiYpGtZ7'
-        #access_token = '469641234-wAc1uMHBENJwI5S0SUFdED63dMlWwTTTdOVHIrOL'
-        #access_token_secret = '3DSGRzcuFEnRIPzIQaRn17e2xXBARKh1fTlis1H1tGHz5'
+     
         
         #Authentication With Twitter Developer Account        
         try:
@@ -577,7 +567,7 @@ class StatusPage(tk.Frame):
             self.var.set('Time left: Processing...')
 
             #loop for fetching tweet by hours
-            for i in range(hours): ######CHANGE TO HOURS WHEN DONE ######### 
+            for i in range(1): 
                 print("Fetch number : ",(i+1),'/',hours)
                 size_of_hashtag=TweetCon.runTweetCon(text,0)
                 if size_of_hashtag==0:
@@ -587,7 +577,7 @@ class StatusPage(tk.Frame):
                     
                 self.progressBar['value']+=10     
                 self.var.set('Time left: {} Hours'.format(hours-i))
-                time.sleep(60*60)#######CHANGE TIME SLEEP TO =60*60 #########
+                time.sleep(1)
                 
             self.checkbox_fetchs_tweets[self.fetching_tweets].select()
             self.size_of_fetching_tweets=util. get_size_of_file("./csvData/"+text+"/"+text+"_hashtag_tweets.csv")
@@ -607,7 +597,7 @@ class StatusPage(tk.Frame):
                 
             #run npl 
             #hashtag and True:using pickle ,False:training and predictiing using ML kfolds LinearSVM    
-            NLP.run_natural_language_processing(text,True)
+            NLP.run_natural_language_processing(text)
             self.progressBar['value']+=20
             self.checkbox_fetchs_tweets[self.sentiment_analysis].select()
                 
@@ -616,20 +606,7 @@ class StatusPage(tk.Frame):
             self.update_information[self.sentiment_analysis].set(self.score_label+"% accuracy")
             
                 
-            '''
-            #timeSeries
-            timeSeries.run_time_series(text)
-                
-            #LSTM
-            #returns date and time dictionary(dt_dic),predictions(pred) and size of prediction
-            dt_dic,pred,size_of_prediction=LSTM.main_pred(text,self.percentage)
-            self.progressBar['value']+=20
-            self.checkbox_fetchs_tweets[self.lstm_prediction].select()
-                
-            #starting PlotPage
-            self.controller.show_plots_frame(self.parent,PlotPage,text,duration,dt_dic,pred,size_of_prediction)
-            #result_page(text,date_time_dic)
-            '''
+ 
                 
            # lock.release()
         
@@ -850,7 +827,7 @@ class LstmPage(tk.Frame):
     
       
         #top frame
-        self.topFrame=tk.Frame(self)
+        self.topFrame=tk.Frame(self,bg='white')
         self.topFrame.pack(side=tk.TOP,fill='both')
         #back button
         self.back_button=tk.Button(self.topFrame,fg=text_color,text="Back",command=lambda:self.controller.show_frame("StartPage"),bg=button_background_color)
@@ -944,7 +921,7 @@ class LstmPage(tk.Frame):
         percentage=self.get_percentage()
         text=self.text
         submit_thread_ = threading.Thread(target=lambda :self.runLstm(text,smooth_flag,percentage))
-        #submit_thread.daemon = True
+   
         submit_thread_.start()
         self.after(600,self.check_if_ready,submit_thread_)
         
@@ -957,7 +934,7 @@ class LstmPage(tk.Frame):
         
             percentage=percentage/100
             #timeSeries
-            print("smooth_flag==",smooth_flag)
+           
         
             timeSeries.run_time_series(text,smooth_flag)
             time.sleep(3)
@@ -971,8 +948,6 @@ class LstmPage(tk.Frame):
             self.pred=pred
             self.size_of_prediction=size_of_prediction
                 
-            #starting PlotPage
-            #self.controller.show_plots_frame(self.parent,PlotPage,self.text,self.duration,dt_dic,pred,size_of_prediction)
             return
         except:
             print("Error on Lstm !\n")
@@ -987,4 +962,5 @@ class LstmPage(tk.Frame):
 
 if __name__ == "__main__":
     app = SampleApp()
+    app.title("Twitter Predicition Based on Sentiment Analysis" )
     app.mainloop()

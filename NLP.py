@@ -6,29 +6,20 @@ Created on Thu Apr 25 01:15:32 2019
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 import csv
-import sys
 import pickle
 # Cleaning the texts
-import re
-import nltk
 from nltk import word_tokenize
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import StratifiedKFold
-from sklearn.naive_bayes import GaussianNB
-from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
-from sklearn.svm import SVC 
-from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.metrics import confusion_matrix
-from sklearn.ensemble import RandomForestClassifier
 from nltk.corpus import sentiwordnet as swn
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
 import sklearn.cross_validation as cross_validation
-
+from pathlib import Path
 
 SAVE_FILENAME= './pickle/sentiment_analysis_finalized_model.sav'
 
@@ -53,11 +44,12 @@ def get_list_of_sentences(in_data,size):
     return dataset
 
 
-def run_natural_language_processing(inquery,flag):
+def run_natural_language_processing(inquery):
     print("starting function run_natural_language_processing\n")
     # Importing the dataset
     try:
-        big_dataset = pd.read_csv('./csvData/preprocess_dataset_sample.csv')
+        #preprocess_dataset_sample.csv
+        big_dataset = pd.read_csv('./csvData/200k-preprocess_dataset_sample.csv')
         selected_tweets= pd.read_csv('./csvData/'+inquery+'/preprocess_'+inquery+'_hashtag_tweets.csv')
     except FileNotFoundError:
         print("Error loading file")
@@ -70,8 +62,10 @@ def run_natural_language_processing(inquery,flag):
     
       
     #Load an existing trained pickle file
-    if flag==True:
-        
+    filename = './pickle/sentiment_analysis_finalized_model.sav'
+    file=Path(filename)
+    
+    if file.exists()==True:
         try:
             loaded_model = pickle.load(open(SAVE_FILENAME, 'rb'))
             print("pickle loaded successfully")
@@ -104,14 +98,16 @@ def run_natural_language_processing(inquery,flag):
             clf_score_list.append(clf.score(X_test,y_test))
             cv_features_name_list.append(clf.named_steps['vectorizer'].get_feature_names())
         y_pred=clf.predict(X_selected_tweets)
+        sum_score=sum(clf_score_list)/10
+        str_="{}".format(sum_score)
         print("Svm Score =",clf_score_list)
-        print("AVG accuracy svm= ",sum(clf_score_list)/10)
+        print("AVG accuracy svm= ",sum_score)
         
         #save score predicition 
         try:
             filename = './pickle/sentiment_score.txt'
             with open(filename,'w') as textfile:
-                textfile.write(sum(clf_score_list)/10)    
+                textfile.write(str_)    
                 
         except (FileNotFoundError ,IOError):
             print("No file was found")
@@ -139,6 +135,4 @@ def run_natural_language_processing(inquery,flag):
             print ('\nSaved prediction for tweets to: preprocess_'+inquery+'_hashtag_tweets_pred.csv\n')
     except IOError:
         print("File error")
-    
-#run_natural_language_processing("gameofthrones",True)    
-#run_natural_language_processing("ml",True)
+        
