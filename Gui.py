@@ -438,6 +438,7 @@ class StatusPage(tk.Frame):
         self.controller = controller
         self.parent=parent    
         self.score_label=0
+        self.twitter_flag=0
       
 
 
@@ -533,8 +534,12 @@ class StatusPage(tk.Frame):
         if thread.is_alive():
             self.after(1000,self.check_if_ready,thread,text,duration)
         else:
-            print("lstm thread done\n")
-            self.controller.show_lstm_frame(self.parent,LstmPage,text,duration)
+            if self.twitter_flag==1:
+               messagebox.showerror("Error","Tweets not found")
+               self.controller.show_frame("StartPage")
+            else:
+                print("lstm thread done\n")
+                self.controller.show_lstm_frame(self.parent,LstmPage,text,duration)
             
     
     #Starting theding to run all the PROCESSES
@@ -543,7 +548,7 @@ class StatusPage(tk.Frame):
         global lock
         lock=threading.Lock()
         submit_thread = threading.Thread(target=lambda :self.run(TEXT,duration,flag,master))
-        submit_thread.daemon = True
+       # submit_thread.daemon = True
         submit_thread.start()
         self.after(1000,self.check_if_ready,submit_thread,TEXT,int(duration))
         
@@ -571,8 +576,7 @@ class StatusPage(tk.Frame):
                 print("Fetch number : ",(i+1),'/',hours)
                 size_of_hashtag=TweetCon.runTweetCon(text,0)
                 if size_of_hashtag==0:
-                    messagebox.showerror("Error","Tweets not found")
-                    self.controller.show_frame("StartPage")
+                    self.twitter_flag=1
                     return 
                     
                 self.progressBar['value']+=10     
@@ -808,6 +812,8 @@ class PlotPage(tk.Frame):
             plots_labels.append(tk.PhotoImage(file=self.image_path))
             
         return plots_labels
+    
+   
      
 
 
