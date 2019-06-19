@@ -160,7 +160,7 @@ class StartPage(tk.Frame):
         
         
         # ~ MAIN LOGO ~
-        self.main_logo=tk.PhotoImage(file='./b_gui/Twitter Prediction3.png')
+        self.main_logo=tk.PhotoImage(file='./b_gui/MainLogo2.png')
         self.top_label=tk.Label(top_frame,bg='white')       
         self.top_label.pack(side=tk.TOP)
         self.top_label.config(image=self.main_logo)
