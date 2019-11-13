@@ -1,4 +1,4 @@
-# TWITTER PREDICTION BASED ON SENTIMENT ANALYSIS
+# Sentiment Time-Series Prediction in Twitter with LSTM 
 
 Project support Python 3.x+
 Note: It is recommended to use Anaconda distribution of Python.
