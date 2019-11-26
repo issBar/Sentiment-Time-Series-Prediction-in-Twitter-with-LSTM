@@ -33,9 +33,9 @@ Numpy : pip install numpy
 ```
 ```
 
-## Usage
+## **
 
-### 1. Run GUI -> Authenticate using twitter developer account. 
+### 1. Run GUI.py -> Authenticate using twitter developer account. 
 
 
 ### 2. Insert a Hashtag that you want to predict 
