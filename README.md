@@ -1,10 +1,10 @@
 # Sentiment Time-Series Prediction in Twitter with LSTM 
 
-Project support Python 3.x+
+Project support Python 3.6.x+
 Note: It is recommended to use Anaconda distribution of Python.
 
 *NOTE Please extract csvData to your Directory
-
+*NOTE  requirements.txt 
 ## Requirements 
 ```
 Tweepy : pip install tweepy
