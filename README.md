@@ -4,7 +4,7 @@ Project support Python 3.6.x+
 Note: It is recommended to use Anaconda distribution of Python.
 
 *NOTE Please extract csvData to your Directory
-, run requirements.txt 
+*run requirements.txt in order to import all the necessary files.
 ## Requirements 
 ```
 Tweepy : pip install tweepy
