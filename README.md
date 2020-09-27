@@ -5,7 +5,7 @@ Note: It is recommended to use Anaconda distribution of Python.
 
 *NOTE Please extract csvData to your Directory
 
-*run requirements.txt in order to import all the necessary files.
+*run requirements.txt in order to import all the necessary packages.
 ## Requirements 
 ```
 Tweepy : pip install tweepy
