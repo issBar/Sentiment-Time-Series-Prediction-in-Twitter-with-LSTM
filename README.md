@@ -4,36 +4,6 @@ Project support Python 3.6.x+
 Note: It is recommended to use Anaconda distribution of Python.
 
 *NOTE Please extract csvData to your Directory
-
-*run requirements.txt in order to import all the necessary packages.
-## Requirements 
-```
-Tweepy : pip install tweepy
-```
-```
-Pandas : pip install pandas
-```
-```
-Scikit-learn : pip install scikit-learn
-```
-```
-NLTK : pip install nltk
-```
-```
-Keras : pip install Keras
-```
-```
-Matplotlib : pip install matplotlib
-```
-```
-Sqlite3 : pip install quick-sqlite
-```
-```
-Numpy : pip install numpy
-```
-```
-```
-
 ## **
 
 ### 1. Run GUI.py -> Authenticate using twitter developer account. 
